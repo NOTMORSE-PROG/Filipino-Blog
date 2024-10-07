@@ -70,3 +70,9 @@ body {
   color: var(--bs-primary);
   border-bottom: 2px solid var(--bs-primary);
 }
+
+.img-size {
+  width: 250px;
+  height: 250px;
+  object-fit: cover; 
+}
