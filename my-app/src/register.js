@@ -39,7 +39,7 @@ document
       );
       const user = userCredential.user;
       console.log("User registered successfully:", user);
-      window.location.href = "dashboard.html";
+      window.location.href = "../dashboard.html";
     } catch (error) {
       errorMessage.textContent = error.message;
       errorMessage.style.display = "block";
