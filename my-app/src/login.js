@@ -13,7 +13,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     console.log("User logged in successfully:", user);
-    window.location.href = "my-app/dashboard.html";
+    window.location.href = "../my-app/dashboard.html"
   } catch (error) {
     errorMessage.textContent = error.message;
     errorMessage.style.display = "block"; 
