@@ -39,7 +39,7 @@ body {
 
 .btn-filipino {
     background-color: var(--primary-color);
-    color: var(--bg-color);
+    color: black
 }
 
 .btn-filipino:hover {
