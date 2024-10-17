@@ -8,14 +8,41 @@
     <link rel="stylesheet" href="post.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 </head>
+<style>
+    @media (max-width: 767.98px) {
+  .sidebar {
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: -100%;
+    z-index: 1000;
+    transition: all 0.3s ease-in-out;
+    width: 200px;
+  }
+
+  .sidebar.show {
+    left: 0;
+  }
+
+  .content-wrapper {
+    margin-left: 0 !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .content-wrapper {
+    margin-left: 200px;
+  }
+}
+</style>
 <body>
-    <nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.html">
                 <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
-                <span class="text-filipino">FilipinoBlog</span>
+                <span class="ms-2 text-filipino">FilipinoBlog</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" id="sidebarToggle">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -52,7 +79,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -82,6 +109,7 @@
                     </ul>
                 </div>
             </nav>
+
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -213,32 +241,6 @@
     </div>
 
     <script src="bootstrap.bundle.min.js"></script>
-    <script>
-    const themeToggle = document.getElementById("themeToggle");
-      const htmlElement = document.documentElement;
-      const iconElement = themeToggle.querySelector("i");
-
-      function setTheme(theme) {
-        htmlElement.setAttribute("data-bs-theme", theme);
-        if (theme === "dark") {
-          iconElement.classList.replace("bi-sun-fill", "bi-moon-fill");
-        } else {
-          iconElement.classList.replace("bi-moon-fill", "bi-sun-fill");
-        }
-      }
-
-      window.addEventListener("DOMContentLoaded", () => {
-        const savedTheme = localStorage.getItem("theme") || "light";
-        setTheme(savedTheme);
-      });
-
-      themeToggle.addEventListener("click", () => {
-        let currentTheme = htmlElement.getAttribute("data-bs-theme");
-        let newTheme = currentTheme === "light" ? "dark" : "light";
-        setTheme(newTheme);
-
-        localStorage.setItem("theme", newTheme);
-      });
-    </script>
+    <script src ="theme.js"></script>
 </body>
 </html>
