@@ -1,0 +1,78 @@
+:root {
+  --primary-color: #fcd116;
+  --text-color: #ffffff;
+  --bg-color: rgba(33,37,41,255);
+  --card-bg: #1a1a1a;
+  --nav-bg: #0d0d0d;
+}
+
+[data-bs-theme="light"] {
+  --primary-color: #fcd116;
+  --text-color: #333333;
+  --bg-color: #f0f0f0;
+  --card-bg: #f8f9fa;
+  --nav-bg: #f8f9fa;
+  --text-filipino-color: #202122;
+}
+
+body {
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.text-filipino {
+  color: var(--text-filipino-color);
+  font-weight: bold;
+}
+
+.navbar {
+  background-color: var(--nav-bg) !important;
+}
+
+.headimg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center;
+  color: white;
+}
+
+.btn-filipino {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+  padding: 12px 20px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  border: 2px solid var(--bg-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-filipino:hover {
+  background-color: var(--bg-color);
+  color: var(--primary-color);
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: none;
+}
+
+.nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  color: var(--bs-primary);
+  border-bottom: 2px solid var(--bs-primary);
+}
+
+.img-size {
+  width: 150px;
+  height: 150px;
+  object-fit: cover; 
+}
