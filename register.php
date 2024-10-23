@@ -95,11 +95,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" id="password" required />
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="password" id="password" required />
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword" aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" required />
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" required />
+                                <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword" aria-label="Toggle confirm password visibility">
+                                    <i class="bi bi-eye"></i> 
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="agreeTerms" required />
@@ -155,6 +165,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let newTheme = currentTheme === "light" ? "dark" : "light";
         setTheme(newTheme);
         localStorage.setItem("theme", newTheme);
+    });
+
+    const passwordField = document.getElementById('password');
+    const togglePasswordButton = document.getElementById('togglePassword');
+    const togglePasswordIcon = togglePasswordButton.querySelector('i');
+
+    togglePasswordButton.addEventListener('click', function () {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+
+        togglePasswordIcon.classList.toggle('bi-eye');
+        togglePasswordIcon.classList.toggle('bi-eye-slash');
+    });
+
+    const confirmPasswordField = document.getElementById('confirmPassword');
+    const toggleConfirmPasswordButton = document.getElementById('toggleConfirmPassword');
+    const toggleConfirmPasswordIcon = toggleConfirmPasswordButton.querySelector('i');
+
+    toggleConfirmPasswordButton.addEventListener('click', function () {
+        const type = confirmPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordField.setAttribute('type', type);
+
+        toggleConfirmPasswordIcon.classList.toggle('bi-eye');
+        toggleConfirmPasswordIcon.classList.toggle('bi-eye-slash');
     });
 </script>
 </body>
