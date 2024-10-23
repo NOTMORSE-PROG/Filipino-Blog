@@ -123,7 +123,7 @@
                                 <i class="bi bi-sort-down"></i> Sort
                             </button>
                         </div>
-                        <a href="#" class="btn btn-sm btn-filipino">
+                        <a href="create-post.php" class="btn btn-sm btn-filipino">
                             <i class="bi bi-plus-lg"></i> New Post
                         </a>
                     </div>
