@@ -23,6 +23,19 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+$userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
+$userStmt = $conn->prepare($userProfileQuery);
+$userStmt->bind_param("i", $user_id);
+$userStmt->execute();
+$userResult = $userStmt->get_result();
+$userProfilePath = "https://via.placeholder.com/32";
+
+if ($userRow = $userResult->fetch_assoc()) {
+    $userProfilePath = $userRow['picture_path'];
+}
+
+$userStmt->close();
+
 $userQuery = $conn->prepare("SELECT email FROM users WHERE id = ?");
 $userQuery->bind_param("i", $user_id);
 $userQuery->execute();
@@ -168,7 +181,7 @@ $conn->close();
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="https://via.placeholder.com/32" alt="User Avatar" class="rounded-circle" width="32" height="32">
+                            <img src="<?php echo htmlspecialchars($userProfilePath); ?>" alt="User Avatar" class="rounded-circle" width="32" height="32">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="settings.php">Profile</a></li>
@@ -217,7 +230,7 @@ $conn->close();
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Create/Edit Post</h1>
+                    <h1 class="h2">Create Post</h1>
                 </div>
                 <div class="row">
                     <div class="col-12">

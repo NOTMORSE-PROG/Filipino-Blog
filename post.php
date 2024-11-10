@@ -181,7 +181,7 @@ if (isset($_POST['delete_post_id'])) {
                         echo '                </div>';
                         echo '                <form method="post" class="delete-form">';
                         echo '                    <input type="hidden" name="delete_post_id" value="' . $row['id'] . '">';
-                        echo '                    <button type="submit" class="btn btn-sm btn-outline-danger delete-button"><i class="bi bi-trash"></i></button>';
+                        echo '                    <button type="button" class="btn btn-sm btn-outline-danger delete-button"><i class="bi bi-trash"></i></button>';
                         echo '                </form>';
                         echo '            </div>';
                         echo '        </div>';
@@ -203,26 +203,52 @@ if (isset($_POST['delete_post_id'])) {
 <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteConfirmationModalLabel">Post Deleted</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">The post has been successfully deleted.</div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-filipino" data-bs-dismiss="modal">Close</button>
-            </div>
+            <form method="post" id="deleteConfirmationForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this post?
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="delete_post_id" id="deletePostId">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <?php if ($post_deleted) { ?>
 <script>
-    var deleteConfirmationModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
-    deleteConfirmationModal.show();
+    var postDeletedModal = new bootstrap.Modal(document.getElementById('postDeletedModal'));
+    postDeletedModal.show();
 </script>
 <?php } ?>
 
 <script src="bootstrap.bundle.min.js"></script>
 <script src ="theme.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        const deletePostIdInput = document.getElementById('deletePostId');
+        const deleteConfirmationModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const deleteForm = button.closest('form');
+                const postId = deleteForm.querySelector('input[name="delete_post_id"]').value;
+                deletePostIdInput.value = postId;
+                deleteConfirmationModal.show();
+            });
+        });
+
+        document.getElementById('deleteConfirmationForm').addEventListener('submit', () => {
+            deleteConfirmationModal.hide();
+        });
+    });
+</script>
 </body>
 </html>
