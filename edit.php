@@ -1,107 +1,80 @@
 <?php
-
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+$user_id = $_SESSION['user_id'];  
 
 $servername = "localhost";
-$username = "root";  
-$password = "";  
+$username = "root";
+$password = "";
 $dbname = "FilipinoBlog";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
-
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if (!isset($_SESSION['user_id'])) {
-    die("User not logged in.");
+$userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
+$userStmt = $conn->prepare($userProfileQuery);
+$userStmt->bind_param("i", $user_id);
+$userStmt->execute();
+$userResult = $userStmt->get_result();
+$userProfilePath = "https://via.placeholder.com/32";
+
+if ($userRow = $userResult->fetch_assoc()) {
+    $userProfilePath = $userRow['picture_path'];
 }
 
-$user_id = $_SESSION['user_id'];
+$userStmt->close();
 
-$userQuery = $conn->prepare("SELECT email FROM users WHERE id = ?");
-$userQuery->bind_param("i", $user_id);
-$userQuery->execute();
-$userResult = $userQuery->get_result();
+if (isset($_GET['id'])) {
+    $postId = $_GET['id'];
 
-if ($userResult->num_rows > 0) {
-    $userData = $userResult->fetch_assoc();
-    $userEmail = $userData['email'];
-    $safeEmail = preg_replace('/[^\w.@]+/', '_', $userEmail);
+    $stmt = $conn->prepare("SELECT * FROM posts WHERE id = ? AND user_id = ?");
+    $stmt->bind_param('ii', $postId, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $post = $result->fetch_assoc();
+
+    if (!$post) {
+        header('Location: post.php');
+        exit();
+    }
 } else {
-    die("User not found.");
+    header('Location: post.php');
+    exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['postTitle'];
+    $content = $_POST['postContent'];
+    $category = $_POST['postCategory'];
+    $tags = $_POST['postTags'];
+    $publishImmediately = isset($_POST['publishImmediately']) ? 1 : 0;
 
-    $title = $conn->real_escape_string($_POST['title']);
-    $content = $conn->real_escape_string($_POST['content']);
-    $category = $conn->real_escape_string($_POST['category']);
-    $tags = $conn->real_escape_string($_POST['tags']);
-
-    $uploadDir = "uploads/{$safeEmail}/";
-
-    if (!file_exists($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
-    }
-
-    $target_file = $uploadDir . basename($_FILES["featured_image"]["name"]);
-    $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-    $check = getimagesize($_FILES["featured_image"]["tmp_name"]);
-    if ($check !== false) {
-        $uploadOk = 1;
-    } else {
-        echo "<div class='alert alert-danger'>File is not an image.</div>";
-        $uploadOk = 0;
-    }
-
-    if (file_exists($target_file)) {
-        echo "<div class='alert alert-danger'>Sorry, file already exists.</div>";
-        $uploadOk = 0;
-    }
-
-    if ($_FILES["featured_image"]["size"] > 500000) { 
-        echo "<div class='alert alert-danger'>Sorry, your file is too large.</div>";
-        $uploadOk = 0;
-    }
-
-    if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
-        echo "<div class='alert alert-danger'>Sorry, only JPG, JPEG, PNG, and GIF files are allowed.</div>";
-        $uploadOk = 0;
-    }
-
-    if ($uploadOk == 0) {
-        echo "<div class='alert alert-danger'>Sorry, your file was not uploaded.</div>";
-    } else {
-        if (move_uploaded_file($_FILES["featured_image"]["tmp_name"], $target_file)) {
-
-            $featured_image = $target_file;
-
-            $sql = "INSERT INTO posts (user_id, title, content, category, tags, featured_image) 
-                    VALUES ('$user_id', '$title', '$content', '$category', '$tags', '$featured_image')";
-
-            if ($conn->query($sql) === TRUE) {
-                echo "<div class='alert alert-success'>New post created successfully.</div>";
-                header("Location: post.php");
-                exit();  
-            } else {
-                echo "<div class='alert alert-danger'>Error: " . $sql . "<br>" . $conn->error . "</div>";
-            }
-        } else {
-            echo "<div class='alert alert-danger'>Sorry, there was an error uploading your file.</div>";
+    $featuredImage = $post['featured_image']; 
+    if (isset($_FILES['postImage']) && $_FILES['postImage']['error'] == 0) {
+        $targetDir = "uploads/";
+        $targetFile = $targetDir . basename($_FILES['postImage']['name']);
+        if (move_uploaded_file($_FILES['postImage']['tmp_name'], $targetFile)) {
+            $featuredImage = $targetFile; 
         }
     }
+
+    $stmt = $conn->prepare("UPDATE posts SET title = ?, content = ?, category = ?, tags = ?, featured_image = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
+    $stmt->bind_param('ssssssii', $title, $content, $category, $tags, $featuredImage, $postId, $user_id);
+    $stmt->execute();
+
+    header('Location: post.php');
+    exit();
 }
 
 $conn->close();
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -168,13 +141,13 @@ $conn->close();
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="https://via.placeholder.com/32" alt="User Avatar" class="rounded-circle" width="32" height="32">
+                            <img src="<?php echo htmlspecialchars($userProfilePath); ?>" alt="User Avatar" class="rounded-circle" width="32" height="32">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="settings.php">Profile</a></li>
                             <li><a class="dropdown-item" href="settings.php">Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="">Logout</a></li>
+                            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -217,43 +190,45 @@ $conn->close();
 
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Create/Edit Post</h1>
+                    <h1 class="h2">Edit Post</h1>
                 </div>
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                            <form action="create-post.php" method="post" enctype="multipart/form-data">
+                            <form id="postForm" method="POST" enctype="multipart/form-data">
                                 <div class="mb-3">
-                                    <label for="title" class="form-label">Title</label>
-                                    <input type="text" name="title" id="title" class="form-control" required>
+                                    <label for="postTitle" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="postTitle" name="postTitle" value="<?= htmlspecialchars($post['title']) ?>" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="content" class="form-label">Content</label>
-                                    <textarea name="content"  id="postContent" rows="10" class="form-control" required></textarea>
+                                    <label for="postContent" class="form-label">Content</label>
+                                    <textarea class="form-control" id="postContent" name="postContent" rows="10" required><?= htmlspecialchars($post['content']) ?></textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="category" class="form-label">Category</label>
-                                    <select class="form-select" id="postCategory" name="category" required>
-                                        <option value="">Select a category</option>
-                                        <option value="travel">Travel</option>
-                                        <option value="food">Food</option>
-                                        <option value="culture">Culture</option>
-                                        <option value="lifestyle">Lifestyle</option>
-                                        <option value="technology">Technology</option>
+                                    <label for="postCategory" class="form-label">Category</label>
+                                    <select class="form-select" id="postCategory" name="postCategory" required>
+                                        <option value="travel" <?= $post['category'] == 'travel' ? 'selected' : '' ?>>Travel</option>
+                                        <option value="food" <?= $post['category'] == 'food' ? 'selected' : '' ?>>Food</option>
+                                        <option value="culture" <?= $post['category'] == 'culture' ? 'selected' : '' ?>>Culture</option>
+                                        <option value="lifestyle" <?= $post['category'] == 'lifestyle' ? 'selected' : '' ?>>Lifestyle</option>
+                                        <option value="technology" <?= $post['category'] == 'technology' ? 'selected' : '' ?>>Technology</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="tags" class="form-label">Tags</label>
-                                    <input type="text" name="tags" id="tags" class="form-control">
+                                    <label for="postTags" class="form-label">Tags (comma-separated)</label>
+                                    <input type="text" class="form-control" id="postTags" name="postTags" value="<?= htmlspecialchars($post['tags']) ?>">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="featured_image" class="form-label">Featured Image</label>
-                                    <input type="file" name="featured_image" id="featured_image" class="form-control" required>
+                                    <label for="postImage" class="form-label">Featured Image</label>
+                                    <input type="file" class="form-control" id="postImage" name="postImage" accept="image/*">
+                                    <?php if ($post['featured_image']): ?>
+                                        <img src="<?= htmlspecialchars($post['featured_image']) ?>" alt="Featured Image" class="img-fluid mt-2">
+                                    <?php endif; ?>
                                 </div>
                                 <div class="mb-3 form-check">
-                                    <input type="checkbox" name="agree_to_terms" id="agree_to_terms" class="form-check-input" required>
-                                    <label for="agree_to_terms" class="form-check-label">I agree to terms</label>
+                                <input type="checkbox" name="agree_to_terms" id="agree_to_terms" class="form-check-input" required>
+                                <label for="agree_to_terms" class="form-check-label">I agree to terms</label>   
                                 </div>
                                 <button type="submit" class="btn btn-filipino">Save Post</button>
                                 <a href="post.php" class="btn btn-secondary ms-2">Cancel</a>
@@ -268,5 +243,12 @@ $conn->close();
 
     <script src="bootstrap.bundle.min.js"></script>
     <script src ="theme.js"></script>
+    <script>
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Post saved successfully!');
+            window.location.href = 'post.php';
+        });
+    </script>
 </body>
 </html>

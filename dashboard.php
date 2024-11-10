@@ -1,4 +1,31 @@
+<?php
+$servername = "localhost";
+$username = "root"; 
+$password = "";  
+$dbname = "FilipinoBlog";
 
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+session_start();
+$user_id = $_SESSION['user_id'];  
+
+
+$userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
+$userStmt = $conn->prepare($userProfileQuery);
+$userStmt->bind_param("i", $user_id);
+$userStmt->execute();
+$userResult = $userStmt->get_result();
+
+$userProfilePath = "https://via.placeholder.com/32";  
+if ($userRow = $userResult->fetch_assoc()) {
+    $userProfilePath = $userRow['picture_path'];
+}
+$userStmt->close();
+?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -50,7 +77,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.html">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Notifications</a>
@@ -65,13 +92,13 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="https://via.placeholder.com/32" alt="User Avatar" class="rounded-circle" width="32" height="32">
+                            <img src="<?php echo htmlspecialchars($userProfilePath); ?>" alt="User Avatar" class="rounded-circle" width="32" height="32">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><a class="dropdown-item" href="settings.php">Profile</a></li>
+                            <li><a class="dropdown-item" href="settings.php">Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                         </ul>
                     </li>
                 </ul>

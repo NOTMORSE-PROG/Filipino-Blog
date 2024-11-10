@@ -1,0 +1,108 @@
+:root {
+    --primary-color: #fcd116;
+    --text-color: #ffffff;
+    --bg-color: rgba(33,37,41,255);
+    --card-bg: #1a1a1a;
+    --nav-bg: #0d0d0d;
+}
+
+[data-bs-theme="light"] {
+    --primary-color: #fcd116;
+    --text-color: #333333;
+    --bg-color: #f0f0f0;
+    --card-bg: #f8f9fa;
+    --nav-bg: #f8f9fa;
+    --text-filipino-color: #202122;
+}
+
+body {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar {
+    background-color: var(--nav-bg) !important;
+}
+
+.btn-filipino {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+}
+
+.btn-filipino:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    opacity: 0.9;
+}
+
+.text-filipino {
+    color: var(--text-filipino-color);
+    font-weight: bold;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: none;
+}
+
+.nav-link {
+    color: var(--text-color) !important;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.login {
+    background-color: var(--primary-color);
+    color: black;
+}
+
+.login:hover {
+    background-color: var(--primary-color);
+    opacity: 0.7;
+}
+
+.nav-link.active {
+    font-weight: bold;
+    color: var(--bs-primary);
+    border-bottom: 2px solid var(--bs-primary);
+}
+
+.post-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.facebook-link i {
+    color: #1877f2;
+}
+
+.twitter-link i {
+    color: #1da1f2;
+}
+
+.instagram-link i {
+    color: #e1306c;
+}
+
+.linkedin-link i {
+    color: #0077b5;
+}
+
+.facebook-link i:hover {
+    color: #145dbf;
+}
+
+.twitter-link i:hover {
+    color: #1991db;
+}
+
+.instagram-link i:hover {
+    color: #bc2a8d;
+}
+
+.linkedin-link i:hover {
+    color: #006097;
+}

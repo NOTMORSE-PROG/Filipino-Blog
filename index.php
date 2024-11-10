@@ -1,16 +1,12 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Filipino Blog</title>
-  
-    <meta property="og:title" content="Filipino Blog" />
-    <meta property="og:description" content="A platform for Filipino bloggers to share their stories and connect with the community." />
-    <meta property="og:image" content="https://notmorse-prog.github.io/Filipino-Blog/logo.png" />
-    <meta property="og:url" content="https://notmorse-prog.github.io/Filipino-Blog/" />
-    <meta property="og:type" content="website" />
-    
     <link rel="stylesheet" href="index.css" />
     <link rel="shortcut icon" type="x-icon" href="logo.png" />
     <link rel="stylesheet" href="bootstrap.min.css" />
@@ -46,17 +42,23 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+              <a class="nav-link active" aria-current="page" href="index.php">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Discover</a>
+              <a class="nav-link" href="discover.php">Discover</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="about.html">About</a>
+              <a class="nav-link" href="about.php">About</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="login.php">Log in</a>
-            </li>
+            <?php if (!isset($_SESSION['user_id'])): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="login.php">Log In</a>
+                </li>
+              <?php else: ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard.php">Dashboard</a>
+                </li>
+              <?php endif; ?>
             <li class="nav-item">
               <button id="themeToggle" class="btn btn-link nav-link">
                 <i class="bi bi-sun-fill"></i>
@@ -75,10 +77,16 @@
           thoughts, stories, and ideas. Connect with your community and let your
           voice be heard.
         </p>
-        <a href="login.html" class="btn btn-lg btn-outline-light me-2"
-          >Start Writing</a
-        >
-        <a href="#" class="btn btn-outline-light btn-lg">Explore Blogs</a>
+        <?php if (!isset($_SESSION['user_id'])): ?>
+            <a href="login.html" class="btn btn-lg btn-outline-light me-2">Start Writing</a>
+          <?php else: ?>
+              <a href="post.php" class="btn btn-outline-light btn-lg">Start Writing</a>
+          <?php endif; ?>
+        <?php if (!isset($_SESSION['user_id'])): ?>
+              <a href="login.php" class="btn btn-outline-light btn-lg">Explore Blogs</a>
+          <?php else: ?>
+              <a href="others.php" class="btn btn-outline-light btn-lg">Explore Blogs</a>
+          <?php endif; ?>
       </div>
     </header>
 
@@ -98,7 +106,11 @@
                 <p class="card-text">
                   Exploring the hidden gems of our 7,641 islands...
                 </p>
-                <a href="#" class="btn btn-filipino">Read More</a>
+                <?php if (!isset($_SESSION['user_id'])): ?>
+                  <a href="login.php" class="btn btn-filipino">Read More</a>
+                <?php else: ?>
+                  <a href="others.php" class="btn btn-filipino">Read More</a>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -114,7 +126,11 @@
                 <p class="card-text">
                   From balut to isaw: A journey through local delicacies...
                 </p>
-                <a href="#" class="btn btn-filipino">Read More</a>
+                <?php if (!isset($_SESSION['user_id'])): ?>
+                  <a href="login.php" class="btn btn-filipino">Read More</a>
+                <?php else: ?>
+                  <a href="others.php" class="btn btn-filipino">Read More</a>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -130,7 +146,11 @@
                 <p class="card-text">
                   How modern Filipinos keep ancient customs alive...
                 </p>
-                <a href="#" class="btn btn-filipino">Read More</a>
+                <?php if (!isset($_SESSION['user_id'])): ?>
+                  <a href="login.php" class="btn btn-filipino">Read More</a>
+                <?php else: ?>
+                  <a href="others.php" class="btn btn-filipino">Read More</a>
+                <?php endif; ?>
               </div>
             </div>
           </div>
@@ -239,9 +259,11 @@
           </div>
         </div>
         <div class="text-center mt-4">
-          <a href="login.php" class="btn btn-filipino btn-lg"
-            >Join FilipinoBlog Today</a
-          >
+        <?php if (!isset($_SESSION['user_id'])): ?>
+          <a href="login.php" class="btn btn-filipino btn-lg">Join FilipinoBlog Today</a>
+          <?php else: ?>
+            <a href="post.php" class="btn btn-filipino btn-lg">Write a Blog Now</a>
+        <?php endif; ?>
         </div>
       </div>
     </section>
