@@ -75,9 +75,8 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="bootstrap.min.css" />
     <link rel="stylesheet" href="post.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-</head>
-<style>
-@media (max-width: 767.98px) {
+    <style>
+ @media (max-width: 767.98px) {
   .sidebar {
     position: fixed;
     top: 56px;
@@ -87,9 +86,11 @@ $result = $stmt->get_result();
     transition: all 0.3s ease-in-out;
     width: 200px;
   }
+
   .sidebar.show {
     left: 0;
   }
+
   .content-wrapper {
     margin-left: 0 !important;
   }
@@ -100,15 +101,17 @@ $result = $stmt->get_result();
     margin-left: 200px;
   }
 }
-</style>
+
+    </style>
+</head>
 <body>
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">
             <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
             <span class="ms-2 text-filipino">FilipinoBlog</span>
         </a>
-        <button class="navbar-toggler" type="button" id="sidebarToggle">
+        <button class="navbar-toggler" type="button" id="sidebarToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -120,9 +123,9 @@ $result = $stmt->get_result();
                     <button id="themeToggle" class="btn btn-link nav-link"><i class="bi bi-sun-fill"></i></button>
                 </li>
                 <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="<?php echo htmlspecialchars($userProfilePath); ?>" alt="User Avatar" class="rounded-circle" width="32" height="32">
-                        </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="<?php echo htmlspecialchars($userProfilePath); ?>" alt="User Avatar" class="rounded-circle" width="32" height="32">
+                    </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="settings.php">Profile</a></li>
                         <li><a class="dropdown-item" href="settings.php">Settings</a></li>
@@ -137,25 +140,24 @@ $result = $stmt->get_result();
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
+        <nav class="col-md-3 col-lg-2 sidebar bg-dark" id="sidebar">
             <div class="position-sticky pt-3">
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php"><i class="bi bi-house-door me-2"></i>Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="post.php"><i class="bi bi-file-earmark-text me-2"></i>My Posts</a></li>
-                    <li class="nav-item"><a class="nav-link" href="others.php"><i class="bi bi-people me-2"></i>See Others' Posts</a></li>
-                    <li class="nav-item"><a class="nav-link" href="settings.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="dashboard.php"><i class="bi bi-house-door me-2"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link text-light active" href="post.php"><i class="bi bi-file-earmark-text me-2"></i>My Posts</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="others.php"><i class="bi bi-people me-2"></i>See Others' Posts</a></li>
+                    <li class="nav-item"><a class="nav-link text-light" href="settings.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
                 </ul>
             </div>
         </nav>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">My Posts</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                <form method="POST">
-                    <div class="btn-group me-2">
-                        <select class="form-select" name="filter_category" style="width: 200px; height: 40px;">
-                            <option value="">All Categories</option>
+        <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
+            <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 text-heading">My Posts</h1>
+                <div class="btn-toolbar mb-2 mb-md-0 d-flex flex-nowrap gap-2">
+                    <form method="POST" class="d-flex flex-nowrap gap-2 flex-grow-1 flex-md-grow-0 form-responsive">
+                        <select class="form-select form-select-sm" name="filter_category" >
+                            <option value="" >All</option>
                             <?php
                             $categories = ['Travel', 'Food', 'Culture', 'Lifestyle', 'Technology']; 
                             foreach ($categories as $category) {
@@ -163,21 +165,22 @@ $result = $stmt->get_result();
                             }
                             ?>
                         </select>
-                        <select class="form-select" name="sort_order" style="width: 200px; height: 40px;">
-                            <option value="asc">Sort by Date: Oldest</option>
-                            <option value="desc">Sort by Date: Newest</option>
+                        <select class="form-select form-select-sm" name="sort_order">
+                            <option value="asc">Oldest</option>
+                            <option value="desc">Newest</option>
                         </select>
-                        <button type="submit" class="btn btn-sm btn-outline-secondary" style="height: 40px; width: 80px;">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center btn-responsive">
                             <i class="bi bi-filter"></i> Apply
                         </button>
-                    </div>
-                </form>
-                    <a href="create-post.php" class="btn btn-sm btn-filipino" style="height: 40px; font-size: 18px;"><i class="bi bi-plus-lg"></i> New Post</a>
+                    </form>
+                    <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive">
+                        <i class="bi bi-plus-lg"></i> New
+                    </a>
                 </div>
             </div>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <?php
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+                <?php
                 if ($result->num_rows > 0) {
                     while($row = $result->fetch_assoc()) {
                         $content_preview = substr($row['content'], 0, 100) . '...';
@@ -213,7 +216,7 @@ $result = $stmt->get_result();
 
                 $stmt->close();
                 $conn->close();
-            ?>
+                ?>
             </div>
         </main>
     </div>
