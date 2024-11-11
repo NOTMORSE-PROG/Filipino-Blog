@@ -47,6 +47,24 @@ if (isset($_POST['delete_post_id'])) {
 
     $stmt->close();
 }
+
+$filter_category = $_POST['filter_category'] ?? '';
+$sort_order = $_POST['sort_order'] ?? 'asc';
+
+$sql = "SELECT * FROM posts WHERE user_id = ?";
+$params = [$user_id];
+
+if (!empty($filter_category)) {
+    $sql .= " AND category = ?";
+    $params[] = $filter_category;
+}
+
+$sql .= " ORDER BY created_at " . ($sort_order == 'desc' ? 'DESC' : 'ASC');
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param(str_repeat("s", count($params)), ...$params);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -134,22 +152,32 @@ if (isset($_POST['delete_post_id'])) {
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">My Posts</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
+                <form method="POST">
                     <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filter"></i> Filter</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary"><i class="bi bi-sort-down"></i> Sort</button>
+                        <select class="form-select" name="filter_category" style="width: 200px; height: 40px;">
+                            <option value="">All Categories</option>
+                            <?php
+                            $categories = ['Travel', 'Food', 'Culture', 'Lifestyle', 'Technology']; 
+                            foreach ($categories as $category) {
+                                echo '<option value="' . $category . '">' . $category . '</option>';
+                            }
+                            ?>
+                        </select>
+                        <select class="form-select" name="sort_order" style="width: 200px; height: 40px;">
+                            <option value="asc">Sort by Date: Oldest</option>
+                            <option value="desc">Sort by Date: Newest</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" style="height: 40px; width: 80px;">
+                            <i class="bi bi-filter"></i> Apply
+                        </button>
                     </div>
-                    <a href="create-post.php" class="btn btn-sm btn-filipino"><i class="bi bi-plus-lg"></i> New Post</a>
+                </form>
+                    <a href="create-post.php" class="btn btn-sm btn-filipino" style="height: 40px; font-size: 18px;"><i class="bi bi-plus-lg"></i> New Post</a>
                 </div>
             </div>
 
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             <?php
-                $sql = "SELECT * FROM posts WHERE user_id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $user_id);
-                $stmt->execute();
-                $result = $stmt->get_result();
-
                 if ($result->num_rows > 0) {
                     while($row = $result->fetch_assoc()) {
                         $content_preview = substr($row['content'], 0, 100) . '...';
