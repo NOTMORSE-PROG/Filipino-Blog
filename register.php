@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - FilipinoBlog</title>
-    <link rel="shortcut icon" type="x-icon" href="logo.png" />
+    <link rel="shortcut icon" type="x-icon" href="index.php" />
     <link rel="stylesheet" href="bootstrap.min.css" />
     <link rel="stylesheet" href="register.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" />

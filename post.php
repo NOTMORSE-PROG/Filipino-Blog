@@ -86,7 +86,7 @@ if (isset($_POST['delete_post_id'])) {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">
+        <a class="navbar-brand" href="index.php">
             <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
             <span class="ms-2 text-filipino">FilipinoBlog</span>
         </a>

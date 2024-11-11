@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="index.php">
             <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top" />
             <span class="text-filipino">FilipinoBlog</span>
         </a>

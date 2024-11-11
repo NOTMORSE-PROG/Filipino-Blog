@@ -15,7 +15,7 @@ session_start();
   <body>
     <nav class="navbar navbar-expand-lg sticky-top">
       <div class="container">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="index.php">
           <img
             src="logo.png"
             alt="FilipinoBlog Logo"
