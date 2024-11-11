@@ -77,7 +77,7 @@ $userData = $userResult->fetch_assoc();
 
 $fullName = $userData['fullName'];
 $email = $userData['email'];
-$picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32'; 
+$picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32';
 
 $safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
 
@@ -200,6 +200,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
             margin-left: 200px;
         }
     }
+
+    .container-fluid {
+        padding-bottom: 10px;
+    }
 </style>
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
@@ -281,6 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 <h1 class="h2">Settings</h1>
             </div>
 
+            
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card">
@@ -310,9 +315,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 </div>
 
                 <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Account Settings</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Profile Picture</h5>
+                                <div class="avatar-upload">
+                                <div class="avatar-preview">
+                                    <div id="imagePreview" style="background-image: url(<?php echo htmlspecialchars($picturePath); ?>);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                            <h5 class="card-title">Change Password</h5>
                             <form method="POST" action="">
                                 <div class="mb-3">
                                     <label for="newPassword" class="form-label">New Password</label>
@@ -323,16 +343,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                     <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
                                 </div>
                                 <button type="submit" name="update_password" class="btn btn-filipino">Update Password</button>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
                             <h5 class="card-title">Notification Preferences</h5>
                             <form>
                                 <div class="mb-3 form-check form-switch">
@@ -348,14 +366,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                     <label class="form-check-label" for="newsletterSubscription">Newsletter Subscription</label>
                                 </div>
                                 <button type="submit" class="btn btn-filipino">Save Preferences</button>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
                             <h5 class="card-title">Privacy Settings</h5>
                             <form>
                                 <div class="mb-3 form-check form-switch">
@@ -371,23 +391,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                     <label class="form-check-label" for="allowComments">Allow Comments on Posts</label>
                                 </div>
                                 <button type="submit" class="btn btn-filipino">Update Privacy Settings</button>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-               <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
                             <h5 class="card-title">Danger Zone</h5>
                             <p class="text-muted">These actions are irreversible. Please proceed with caution.</p>
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 Delete Account
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-
+            </main>
+        </div>
+    </div>
+    
                 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
