@@ -1,21 +1,11 @@
 <?php
+include('db_connect.php');
 
 session_start();
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-$servername = "localhost";
-$username = "root";  
-$password = "";  
-$dbname = "FilipinoBlog";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
 
 if (!isset($_SESSION['user_id'])) {
     die("User not logged in.");
@@ -266,7 +256,7 @@ $conn->close();
                                 </div>
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" name="agree_to_terms" id="agree_to_terms" class="form-check-input" required>
-                                    <label for="agree_to_terms" class="form-check-label">I agree to terms</label>
+                                    <label class="form-check-label" for="agreeTerms">I agree to the <a href="#" class="text-filipino">Terms of Service</a> and <a href="#" class="text-filipino">Privacy Policy</a></label>
                                 </div>
                                 <button type="submit" class="btn btn-filipino">Save Post</button>
                                 <a href="post.php" class="btn btn-secondary ms-2">Cancel</a>

@@ -1,21 +1,24 @@
 <?php
+include('db_connect.php');
+
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-$user_id = $_SESSION['user_id'];  
+$user_id = $_SESSION['user_id'];
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "FilipinoBlog";
+$userEmailQuery = "SELECT email FROM users WHERE id = ?";
+$userEmailStmt = $conn->prepare($userEmailQuery);
+$userEmailStmt->bind_param("i", $user_id);
+$userEmailStmt->execute();
+$userEmailResult = $userEmailStmt->get_result();
+$userEmailRow = $userEmailResult->fetch_assoc();
+$userEmail = $userEmailRow['email'];
+$safeEmail = preg_replace('/[^\w.@]+/', '_', $userEmail); 
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+$userEmailStmt->close();
 
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
@@ -55,9 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tags = $_POST['postTags'];
     $publishImmediately = isset($_POST['publishImmediately']) ? 1 : 0;
 
+    $targetDir = "uploads/" . $safeEmail . "/";
+    if (!file_exists($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
     $featuredImage = $post['featured_image']; 
-    if (isset($_FILES['postImage']) && $_FILES['postImage']['error'] == 0) {
-        $targetDir = "uploads/";
+    if (isset($_FILES['postImage']) && $_FILES['postImage']['error'] === UPLOAD_ERR_OK) {
         $targetFile = $targetDir . basename($_FILES['postImage']['name']);
         if (move_uploaded_file($_FILES['postImage']['tmp_name'], $targetFile)) {
             $featuredImage = $targetFile; 
@@ -65,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt = $conn->prepare("UPDATE posts SET title = ?, content = ?, category = ?, tags = ?, featured_image = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('ssssssii', $title, $content, $category, $tags, $featuredImage, $postId, $user_id);
+    $stmt->bind_param('sssssii', $title, $content, $category, $tags, $featuredImage, $postId, $user_id);
     $stmt->execute();
 
     header('Location: post.php');
@@ -74,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $conn->close();
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -228,7 +234,7 @@ $conn->close();
                                 </div>
                                 <div class="mb-3 form-check">
                                 <input type="checkbox" name="agree_to_terms" id="agree_to_terms" class="form-check-input" required>
-                                <label for="agree_to_terms" class="form-check-label">I agree to terms</label>   
+                                <label class="form-check-label" for="agreeTerms">I agree to the <a href="#" class="text-filipino">Terms of Service</a> and <a href="#" class="text-filipino">Privacy Policy</a></label>
                                 </div>
                                 <button type="submit" class="btn btn-filipino">Save Post</button>
                                 <a href="post.php" class="btn btn-secondary ms-2">Cancel</a>
@@ -243,12 +249,5 @@ $conn->close();
 
     <script src="bootstrap.bundle.min.js"></script>
     <script src ="theme.js"></script>
-    <script>
-        document.getElementById('postForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Post saved successfully!');
-            window.location.href = 'post.php';
-        });
-    </script>
 </body>
 </html>

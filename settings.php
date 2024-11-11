@@ -1,16 +1,7 @@
 <?php
 session_start();
 
-$servername = "localhost";
-$username = "root";  
-$password = "";  
-$dbname = "FilipinoBlog";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include('db_connect.php');
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -18,6 +9,33 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
+
+// Function to delete a directory and its contents
+function deleteDirectory($dir) {
+    if (!file_exists($dir)) {
+        return true;
+    }
+    if (!is_dir($dir)) {
+        return unlink($dir);
+    }
+    foreach (scandir($dir) as $item) {
+        if ($item == '.' || $item == '..') {
+            continue;
+        }
+        if (!deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+            return false;
+        }
+    }
+    return rmdir($dir);
+}
+
+$userQuery = $conn->prepare("SELECT email FROM users WHERE id = ?");
+$userQuery->bind_param("i", $userId);
+$userQuery->execute();
+$userResult = $userQuery->get_result();
+$userData = $userResult->fetch_assoc();
+$email = $userData['email'];
+$safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
     $conn->begin_transaction();
@@ -34,6 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
         $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
+
+        // Delete user's specific upload and profile directories
+        $uploadDir = 'C:/xampp/htdocs/Filipino-Blog/uploads/' . $safeEmail;
+        $profileDir = 'C:/xampp/htdocs/Filipino-Blog/profile/' . $safeEmail;
+
+        deleteDirectory($uploadDir);
+        deleteDirectory($profileDir);
 
         $conn->commit();
 

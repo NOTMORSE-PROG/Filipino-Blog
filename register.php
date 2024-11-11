@@ -1,21 +1,5 @@
 <?php
-$host = 'localhost';
-$db = 'FilipinoBlog';
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-];
-
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+include 'db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = $_POST['fullName'] ?? '';
@@ -24,27 +8,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = $_POST['confirmPassword'] ?? '';
 
     if (!empty($email) && !empty($password) && $password === $confirmPassword) {
-        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        
-        if ($stmt->rowCount() > 0) {
+
+        $stmt = $conn->prepare('SELECT * FROM users WHERE email = ?');
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
             $errorMessage = "Email is already registered";
         } else {
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $pdo->prepare('INSERT INTO users (fullName, email, password) VALUES (?, ?, ?)');
-            if ($stmt->execute([$fullName, $email, $hashedPassword])) {
-                header('Location: dashboard.php');
+            $stmt = $conn->prepare('INSERT INTO users (fullName, email, password) VALUES (?, ?, ?)');
+            $stmt->bind_param('sss', $fullName, $email, $hashedPassword);
+
+            if ($stmt->execute()) {
+                header('Location: login.php');
                 exit();
             } else {
-                $errorMessage = "Registration failed: " . $stmt->errorInfo()[2];
+                $errorMessage = "Registration failed: " . $stmt->error;
             }
         }
     } else {
         $errorMessage = "Passwords do not match or fields are empty";
     }
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>

@@ -1,14 +1,5 @@
 <?php
-$servername = "localhost";
-$username = "root";  
-$password = "";  
-$dbname = "FilipinoBlog";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include('db_connect.php');
 
 session_start();
 $user_id = $_SESSION['user_id'];  
