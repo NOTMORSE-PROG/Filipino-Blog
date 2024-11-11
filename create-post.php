@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $uploadOk = 0;
     }
 
-    if ($_FILES["featured_image"]["size"] > 500000) { 
+    if ($_FILES["featured_image"]["size"] > 20971520) { 
         echo "<div class='alert alert-danger'>Sorry, your file is too large.</div>";
         $uploadOk = 0;
     }

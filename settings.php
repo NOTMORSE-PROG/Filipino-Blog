@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
-// Function to delete a directory and its contents
 function deleteDirectory($dir) {
     if (!file_exists($dir)) {
         return true;
@@ -53,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
         $stmt->bind_param("i", $userId);
         $stmt->execute();
 
-        // Delete user's specific upload and profile directories
         $uploadDir = 'C:/xampp/htdocs/Filipino-Blog/uploads/' . $safeEmail;
         $profileDir = 'C:/xampp/htdocs/Filipino-Blog/profile/' . $safeEmail;
 
