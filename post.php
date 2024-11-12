@@ -117,8 +117,6 @@ $result = $stmt->get_result();
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Notifications</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Messages</a></li>
                 <li class="nav-item">
                     <button id="themeToggle" class="btn btn-link nav-link"><i class="bi bi-sun-fill"></i></button>
                 </li>

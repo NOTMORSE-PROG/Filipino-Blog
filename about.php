@@ -277,13 +277,13 @@ session_start();
           <div class="col-md-4 mb-3 mb-md-0">
             <h5 class="text-filipino">Quick Links</h5>
             <ul class="list-unstyled">
-              <li><a href="index.php" class="text-muted">Home</a></li>
-              <li><a href="discover.php" class="text-muted">Discover</a></li>
-              <li><a href="about.php" class="text-muted">About</a></li>
+              <li><a href="index.php" class="text-light">Home</a></li>
+              <li><a href="discover.php" class="text-light">Discover</a></li>
+              <li><a href="about.php" class="text-light">About</a></li>
               <?php if (!isset($_SESSION['user_id'])): ?>
-                <li><a href="login.php" class="text-muted">Log in</a></li>
+                <li><a href="login.php" class="text-light">Log in</a></li>
                 <?php else: ?>
-                  <li><a href="dashboard.php" class="text-muted">Dashboard</a></li>
+                  <li><a href="dashboard.php" class="text-light">Dashboard</a></li>
               <?php endif; ?>
             </ul>
           </div>

@@ -1,5 +1,80 @@
 <?php
 session_start();
+$_SESSION['referrer'] = $_SERVER['REQUEST_URI'];
+include('db_connect.php');
+
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 6;
+$offset = ($page - 1) * $limit;
+$searchQuery = isset($_GET['search']) ? $_GET['search'] : '';
+$selectedCategory = isset($_GET['category']) ? $_GET['category'] : '';
+
+// Form the initial count query
+$totalPostsQuery = "SELECT COUNT(*) as total FROM posts";
+if ($searchQuery || $selectedCategory) {
+    $totalPostsQuery .= " WHERE ";
+
+    if ($searchQuery) {
+        $totalPostsQuery .= "(title LIKE '%$searchQuery%' OR content LIKE '%$searchQuery%' OR fullName LIKE '%$searchQuery%')";
+    }
+
+    if ($searchQuery && $selectedCategory) {
+        $totalPostsQuery .= " AND ";
+    }
+
+    if ($selectedCategory) {
+        $totalPostsQuery .= "category = '$selectedCategory'";
+    }
+}
+
+// Execute the count query
+$totalPostsResult = $conn->query($totalPostsQuery);
+if ($totalPostsResult === false) {
+    die("Error: " . $conn->error);
+}
+$totalPostsRow = $totalPostsResult->fetch_assoc();
+$totalPosts = $totalPostsRow['total'];
+$totalPages = ceil($totalPosts / $limit);
+
+// Form the fetch posts query
+$postsQuery = "
+    SELECT 
+        p.*, 
+        u.fullName 
+    FROM 
+        posts p 
+    JOIN 
+        users u 
+    ON 
+        p.user_id = u.id ";
+
+if ($searchQuery || $selectedCategory) {
+    $postsQuery .= " WHERE ";
+
+    if ($searchQuery) {
+        $postsQuery .= "(title LIKE '%$searchQuery%' OR content LIKE '%$searchQuery%' OR fullName LIKE '%$searchQuery%')";
+    }
+
+    if ($searchQuery && $selectedCategory) {
+        $postsQuery .= " AND ";
+    }
+
+    if ($selectedCategory) {
+        $postsQuery .= "category = '$selectedCategory'";
+    }
+}
+
+$postsQuery .= "
+    LIMIT 
+        $limit 
+    OFFSET 
+        $offset";
+
+$postsResult = $conn->query($postsQuery);
+if (!$postsResult) {
+    die("Error executing query: " . $conn->error);
+}
+$posts = $postsResult->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -72,166 +147,76 @@ session_start();
         <h1 class="text-center mb-5">Discover Filipino Blogs</h1>
         <div class="row mb-4">
             <div class="col-md-8 mb-3 mb-md-0">
-                <input id="searchInput" type="search" class="form-control" placeholder="Search for blogs, topics, or authors...">
+                <input id="searchInput" type="search" class="form-control" placeholder="Search for blogs, topics, or authors..." value="<?php echo htmlspecialchars($searchQuery); ?>">
             </div>
             <div class="col-md-4">
-                <select id="categorySelect" class="form-select">
-                    <option value="" selected>All Categories</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Food">Food</option>
-                    <option value="Culture">Culture</option>
-                    <option value="Lifestyle">Lifestyle</option>
-                    <option value="Technology">Technology</option>
-                </select>
-            </div>
+    <select id="categorySelect" class="form-select">
+        <option value="All Categories" <?php echo ($selectedCategory === '' || $selectedCategory === 'All Categories') ? 'selected' : ''; ?>>All Categories</option>
+        <option value="Travel" <?php echo $selectedCategory === 'Travel' ? 'selected' : ''; ?>>Travel</option>
+        <option value="Food" <?php echo $selectedCategory === 'Food' ? 'selected' : ''; ?>>Food</option>
+        <option value="Culture" <?php echo $selectedCategory === 'Culture' ? 'selected' : ''; ?>>Culture</option>
+        <option value="Lifestyle" <?php echo $selectedCategory === 'Lifestyle' ? 'selected' : ''; ?>>Lifestyle</option>
+        <option value="Technology" <?php echo $selectedCategory === 'Technology' ? 'selected' : ''; ?>>Technology</option>
+    </select>
+</div>
+
         </div>
 
-        <div id="blogContainer" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div class="col">
-                <div class="card h-100" data-title="The Beauty of Philippine Beaches" data-content="Explore the pristine shores and crystal-clear waters of the Philippines' most beautiful beaches." data-author="Maria Santos" data-category="Travel">
-                    <img src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=800&q=80" class="card-img-top post-image" alt="Philippine Beach">
-                    <div class="card-body">
-                        <h5 class="card-title">The Beauty of Philippine Beaches</h5>
-                        <p class="card-text">Explore the pristine shores and crystal-clear waters of the Philippines' most beautiful beaches.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Maria Santos</small>
-                            <span class="badge bg-primary rounded-pill">Travel</span>
-                        </div>
+    <div id="blogContainer" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <?php if ($totalPosts == 0): ?>
+                <div class="col-12">
+                    <div class="text-center">
+                        <h3>No posts available</h3>
                     </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">5 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
+                </div>
+            <?php else: ?>
+                <?php foreach ($posts as $post): ?>
+                <div class="col">
+                        <div class="card h-100" 
+                            data-id="<?php echo htmlspecialchars($post['id']); ?>" 
+                            data-title="<?php echo htmlspecialchars($post['title']); ?>" 
+                            data-content="<?php echo htmlspecialchars($post['content']); ?>" 
+                            data-author="<?php echo htmlspecialchars($post['fullName']); ?>" 
+                            data-category="<?php echo htmlspecialchars($post['category']); ?>">
+                            <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" 
+                             class="card-img-top post-image" alt="Post Image">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($post['title']); ?></h5>
+                            <p class="card-text"><?php echo strlen($post['content']) > 150 ? substr(htmlspecialchars($post['content']), 0, 150) . '...' : htmlspecialchars($post['content']); ?></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">By <?php echo htmlspecialchars($post['fullName']); ?></small>
+                                <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                            <a href="view-others.php?post_id=<?= $post['id'] ?>" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col">
-                <div class="card h-100" data-title="Filipino Cuisine: A Gastronomic Journey" data-content="Discover the rich flavors and diverse culinary traditions of the Philippines." data-author="Juan dela Cruz" data-category="Food">
-                    <img src="https://images.unsplash.com/photo-1528137871618-79d2761e3fd5?auto=format&fit=crop&w=800&q=80" class="card-img-top post-image" alt="Filipino Cuisine">
-                    <div class="card-body">
-                        <h5 class="card-title">Filipino Cuisine: A Gastronomic Journey</h5>
-                        <p class="card-text">Discover the rich flavors and diverse culinary traditions of the Philippines.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Juan dela Cruz</small>
-                            <span class="badge bg-primary rounded-pill">Food</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">7 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100" data-title="The Rich History of Philippine Literature" data-content="Explore the evolution of Filipino literature from pre-colonial times to the modern era." data-author="Ana Reyes" data-category="Culture">
-                    <img src="https://images.unsplash.com/photo-1533478684236-61e1192879e8?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="card-img-top post-image" alt="Philippine Literature">
-                    <div class="card-body">
-                        <h5 class="card-title">The Rich History of Philippine Literature</h5>
-                        <p class="card-text">Explore the evolution of Filipino literature from pre-colonial times to the modern era.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Ana Reyes</small>
-                            <span class="badge bg-primary rounded-pill">Culture</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">10 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100" data-title="Colorful Filipino Festivals" data-content="Experience the vibrant and lively festivals that showcase Filipino culture and traditions." data-author="Carlos Gomez" data-category="Culture">
-                    <img src="https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80" class="card-img-top post-image" alt="Filipino Festivals">
-                    <div class="card-body">
-                        <h5 class="card-title">Colorful Filipino Festivals</h5>
-                        <p class="card-text">Experience the vibrant and lively festivals that showcase Filipino culture and traditions.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Carlos Gomez</small>
-                            <span class="badge bg-primary rounded-pill">Culture</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">8 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100" data-title="Rising Filipino Tech Startups" data-content="Discover the innovative Filipino startups that are making waves in the tech industry." data-author="Mia Lopez" data-category="Technology">
-                    <img src="https://images.unsplash.com/photo-1621924239958-8815bd30e670?auto=format&fit=crop&w=800&q=80" class="card-img-top post-image" alt="Filipino Tech Startups">
-                    <div class="card-body">
-                        <h5 class="card-title">Rising Filipino Tech Startups</h5>
-                        <p class="card-text">Discover the innovative Filipino startups that are making waves in the tech industry.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Mia Lopez</small>
-                            <span class="badge bg-primary rounded-pill">Technology</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">6 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card h-100" data-title="Modern Filipino Fashion Trends" data-content="Explore the latest fashion trends in the Philippines, blending traditional and contemporary styles." data-author="Sofia Cruz" data-category="Lifestyle">
-                    <img src="https://images.unsplash.com/photo-1584559582128-b8be739912e1?auto=format&fit=crop&w=800&q=80" class="card-img-top post-image" alt="Filipino Fashion">
-                    <div class="card-body">
-                        <h5 class="card-title">Modern Filipino Fashion Trends</h5>
-                        <p class="card-text">Explore the latest fashion trends in the Philippines, blending traditional and contemporary styles.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By Sofia Cruz</small>
-                            <span class="badge bg-primary rounded-pill">Lifestyle</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">5 min read</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-bookmark"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </main>
 
-        <nav aria-label="Page navigation" class="mt-5">
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                </li>
-                <li class="page-item active" aria-current="page">
-                    <a class="page-link" href="#">1</a>
-                </li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#">Next</a>
-                </li>
-            </ul>
-        </nav>
-    </main>
+    <?php if ($totalPosts > 0): ?>
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            <li class="page-item <?php echo ($page <= 1 || $totalPages == 1) ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo max(1, $page - 1); ?>&search=<?php echo urlencode($searchQuery); ?>&category=<?php echo urlencode($selectedCategory); ?>">Previous</a>
+            </li>
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($searchQuery); ?>&category=<?php echo urlencode($selectedCategory); ?>"><?php echo $i; ?></a>
+            </li>
+            <?php endfor; ?>
+            <li class="page-item <?php echo ($page >= $totalPages || $totalPages == 1) ? 'disabled' : ''; ?>">
+                <a class="page-link" href="?page=<?php echo min($totalPages, $page + 1); ?>&search=<?php echo urlencode($searchQuery); ?>&category=<?php echo urlencode($selectedCategory); ?>">Next</a>
+            </li>
+        </ul>
+    </nav>
+<?php endif; ?>
 
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
@@ -243,13 +228,13 @@ session_start();
                 <div class="col-md-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                    <li><a href="index.php" class="text-muted">Home</a></li>
-                    <li><a href="discover.php" class="text-muted">Discover</a></li>
-                    <li><a href="about.php" class="text-muted">About</a></li>
+                    <li><a href="index.php" class="text-light">Home</a></li>
+                    <li><a href="discover.php" class="text-light">Discover</a></li>
+                    <li><a href="about.php" class="text-light">About</a></li>
                     <?php if (!isset($_SESSION['user_id'])): ?>
-                        <li><a href="login.php" class="text-muted">Log in</a></li>
+                        <li><a href="login.php" class="text-light">Log in</a></li>
                         <?php else: ?>
-                        <li><a href="dashboard.php" class="text-muted">Dashboard</a></li>
+                        <li><a href="dashboard.php" class="text-light">Dashboard</a></li>
                     <?php endif; ?>
                     </ul>
                 </div>
@@ -283,8 +268,8 @@ session_start();
         </div>
     </footer>
 
-    <script src="bootstrap.bundle.min.js"></script>
-    <script>
+<script src="bootstrap.bundle.min.js"></script>
+<script>
       const themeToggle = document.getElementById("themeToggle");
       const htmlElement = document.documentElement;
       const iconElement = themeToggle.querySelector("i");
@@ -312,38 +297,36 @@ session_start();
       });
 
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            const categorySelect = document.getElementById('categorySelect');
-            const blogContainer = document.getElementById('blogContainer');
-            const blogCards = blogContainer.getElementsByClassName('card');
+ <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const categorySelect = document.getElementById('categorySelect');
 
-            function filterBlogs() {
-                const searchValue = searchInput.value.toLowerCase();
-                const selectedCategory = categorySelect.value;
-                
-                for (let card of blogCards) {
-                    const title = card.getAttribute('data-title').toLowerCase();
-                    const content = card.getAttribute('data-content').toLowerCase();
-                    const author = card.getAttribute('data-author').toLowerCase();
-                    const category = card.getAttribute('data-category');
-                    
-                    const matchesSearch = title.includes(searchValue) || content.includes(searchValue) || author.includes(searchValue);
-                    const matchesCategory = !selectedCategory || category === selectedCategory;
-                    
-                    if (matchesSearch && matchesCategory) {
-                        card.parentElement.style.display = '';
-                    } else {
-                        card.parentElement.style.display = 'none';
-                    }
-                }
-            }
+    function applyFiltersAndNavigate() {
+        const searchValue = searchInput.value.trim();
+        const selectedCategory = categorySelect.value;
 
-            searchInput.addEventListener('input', filterBlogs);
-            categorySelect.addEventListener('change', filterBlogs);
-        });
+
+        let urlParams = new URLSearchParams(window.location.search);
+        if (searchValue) {
+            urlParams.set('search', searchValue);
+        } else {
+            urlParams.delete('search');
+        }
+        if (selectedCategory && selectedCategory !== 'All Categories') {
+            urlParams.set('category', selectedCategory);
+        } else {
+            urlParams.delete('category');
+        }
+
+        window.location.search = urlParams.toString();
+    }
+
+    searchInput.addEventListener('input', applyFiltersAndNavigate);
+    categorySelect.addEventListener('change', applyFiltersAndNavigate);
+});
     </script>
+    
 </body>
 </html>
   

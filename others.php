@@ -1,9 +1,8 @@
 <?php
 include('db_connect.php');
-
 session_start();
+$_SESSION['referrer'] = $_SERVER['REQUEST_URI'];
 $user_id = $_SESSION['user_id'];  
-
 
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
@@ -16,7 +15,51 @@ if ($userRow = $userResult->fetch_assoc()) {
     $userProfilePath = $userRow['picture_path'];
 }
 $userStmt->close();
+
+$filterCategory = isset($_POST['filter_category']) ? $_POST['filter_category'] : '';
+$sortOrder = isset($_POST['sort_order']) ? $_POST['sort_order'] : 'desc'; // Default: Newest
+
+$postsPerPage = 4;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $postsPerPage;
+
+$countQuery = "SELECT COUNT(*) as cnt FROM posts";
+if ($filterCategory) {
+    $countQuery .= " WHERE category = ?";
+}
+$countStmt = $conn->prepare($countQuery);
+if ($filterCategory) {
+    $countStmt->bind_param("s", $filterCategory);
+}
+$countStmt->execute();
+$countResult = $countStmt->get_result();
+$totalPosts = $countResult->fetch_assoc()['cnt'];
+$totalPages = ceil($totalPosts / $postsPerPage);
+
+$postQuery = "SELECT p.*, u.fullName as username, up.picture_path as user_picture
+              FROM posts p
+              JOIN users u ON p.user_id = u.id
+              JOIN user_profile up ON up.user_id = u.id";
+if ($filterCategory) {
+    $postQuery .= " WHERE p.category = ?";
+}
+$postQuery .= " ORDER BY p.created_at $sortOrder LIMIT ?, ?";
+$postStmt = $conn->prepare($postQuery);
+if ($filterCategory) {
+    $postStmt->bind_param("sii", $filterCategory, $offset, $postsPerPage);
+} else {
+    $postStmt->bind_param("ii", $offset, $postsPerPage);
+}
+$postStmt->execute();
+$postResult = $postStmt->get_result();
+
+$posts = [];
+while ($row = $postResult->fetch_assoc()) {
+    $posts[] = $row;
+}
+$postStmt->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -68,12 +111,6 @@ $userStmt->close();
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Notifications</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Messages</a>
                     </li>
                     <li class="nav-item">
                         <button id="themeToggle" class="btn btn-link nav-link">
@@ -130,131 +167,79 @@ $userStmt->close();
             </nav>
 
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">See Others' Posts</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-filter"></i> Filter
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-sort-down"></i> Sort
-                            </button>
-                        </div>
-                    </div>
+            <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
+            <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 text-heading">My Posts</h1>
+                <div class="btn-toolbar mb-2 mb-md-0 d-flex flex-nowrap gap-2">
+                    <form method="POST" class="d-flex flex-nowrap gap-2 flex-grow-1 flex-md-grow-0 form-responsive">
+                        <select class="form-select form-select-sm" name="filter_category" >
+                            <option value="" >All</option>
+                            <?php
+                            $categories = ['Travel', 'Food', 'Culture', 'Lifestyle', 'Technology']; 
+                            foreach ($categories as $category) {
+                                echo '<option value="' . $category . '">' . $category . '</option>';
+                            }
+                            ?>
+                        </select>
+                        <select class="form-select form-select-sm" name="sort_order">
+                            <option value="asc">Oldest</option>
+                            <option value="desc">Newest</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center btn-responsive">
+                            <i class="bi bi-filter"></i> Apply
+                        </button>
+                    </form>
+                    <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive">
+                        <i class="bi bi-plus-lg"></i> New
+                    </a>
                 </div>
+            </div>
 
+                <?php if (empty($posts)): ?>
+                <div class="text-center">
+                    <h3>No posts available</h3>
+                </div>
+                <?php else: ?>
                 <div class="row row-cols-1 row-cols-md-2 g-4">
+                    <?php foreach ($posts as $post): ?>
                     <div class="col">
                         <div class="card">
-                            <img src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e" class="card-img-top post-image" alt="Breakfast in Bohol">
+                            <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" class="card-img-top post-image" alt="Post Image">
                             <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="https://via.placeholder.com/48" alt="User Avatar" class="avatar me-3">
-                                    <div>
-                                        <h5 class="card-title mb-0">Maria Santos</h5>
-                                        <small class="text-muted">Posted 2 hours ago</small>
-                                    </div>
-                                </div>
-                                <h4 class="card-title">A Taste of Bohol: Breakfast by the Beach</h4>
-                                <p class="card-text">Starting my day with a delicious Filipino breakfast while enjoying the beautiful beaches of Bohol. The perfect way to begin any island adventure! #BreakfastGoals #BoholLife</p>
+                                <h5 class="card-title mb-0"><?php echo htmlspecialchars($post['username']); ?></h5>
+                                <small class="text-muted">Posted <?php echo htmlspecialchars($post['created_at']); ?></small>
+                                <h4 class="card-title mt-3"><?php echo htmlspecialchars($post['title']); ?></h4>
+                                <p class="card-text">
+                                    <?php
+                                    $content = htmlspecialchars($post['content']);
+                                    echo (strlen($content) > 150) ? substr($content, 0, 150) . '...' : $content;
+                                    ?>
+                                </p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-heart"></i> Like</button>
-                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-chat"></i> Comment</button>
-                                    </div>
-                                    <small class="text-muted">89 likes • 23 comments</small>
+                                    <a href="view-others.php?post_id=<?= $post['id']; ?>" class="btn btn-sm btn-filipino">Read More</a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="card">
-                            <img src="https://images.unsplash.com/photo-1555921015-5532091f6026" class="card-img-top post-image" alt="Jeepney Art">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="https://via.placeholder.com/48" alt="User Avatar" class="avatar me-3">
-                                    <div>
-                                        <h5 class="card-title mb-0">Juan dela Cruz</h5>
-                                        <small class="text-muted">Posted 5 hours ago</small>
-                                    </div>
-                                </div>
-                                <h4 class="card-title">The Art of Jeepneys: A Filipino Cultural Icon</h4>
-                                <p class="card-text">Exploring the vibrant world of jeepney art in Manila. These moving canvases are more than just transportation - they're a testament to Filipino creativity and resilience. #JeepneyArt #PinoyPride</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-heart"></i> Like</button>
-                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-chat"></i> Comment</button>
-                                    </div>
-                                    <small class="text-muted">132 likes • 41 comments</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card">
-                            <img src="https://images.unsplash.com/photo-1528164344705-47542687000d" class="card-img-top post-image" alt="Philippine Eagle">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="https://via.placeholder.com/48" alt="User Avatar" class="avatar me-3">
-                                    <div>
-                                        <h5 class="card-title mb-0">Ana Reyes</h5>
-                                        <small class="text-muted">Posted 1 day ago</small>
-                                    </div>
-                                </div>
-                                <h4 class="card-title">Majestic Philippine Eagle: A Symbol of Conservation</h4>
-                                <p class="card-text">Had the rare opportunity to see a Philippine Eagle up close at the conservation center in Davao. These magnificent birds are critically endangered - it's crucial we protect them and their habitats. #WildlifeConservation #PhilippineEagle</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-heart"></i> Like</button>
-                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-chat"></i> Comment</button>
-                                    </div>
-                                    <small class="text-muted">215 likes • 67 comments</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card">
-                            <img src="https://images.unsplash.com/photo-1516550893923-42d28e5677af" class="card-img-top post-image" alt="Ifugao Rice Terraces">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="https://via.placeholder.com/48" alt="User Avatar" class="avatar me-3">
-                                    <div>
-                                        <h5 class="card-title mb-0">Carlos Bautista</h5>
-                                        <small class="text-muted">Posted 3 days ago</small>
-                                    </div>
-                                </div>
-                                <h4 class="card-title">The Majestic Ifugao Rice Terraces</h4>
-                                <p class="card-text">Witnessing the awe-inspiring Ifugao Rice Terraces in person is a humbling experience. These 2000-year-old terraces are a testament to our ancestors' ingenuity and harmony with nature. #8thWonderOfTheWorld #PhilippineHeritage</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-heart"></i> Like</button>
-                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-chat"></i> Comment</button>
-                                    </div>
-                                    <small class="text-muted">301 likes • 89  comments</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <nav aria-label="Page navigation" class="my-4">
                     <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link" href="others.php?page=<?php echo max(1, $page - 1); ?>">Previous</a>
                         </li>
-                        <li class="page-item active" aria-current="page">
-                            <a class="page-link" href="#">1</a>
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
+                            <a class="page-link" href="others.php?page=<?php echo $i; ?>"><?php echo $i; ?></a>
                         </li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
+                        <?php endfor; ?>
+                        <li class="page-item <?php echo ($page >= $totalPages) ? 'disabled' : ''; ?>">
+                            <a class="page-link" href="others.php?page=<?php echo min($totalPages, $page + 1); ?>">Next</a>
                         </li>
                     </ul>
                 </nav>
+                <?php endif; ?>
             </main>
         </div>
     </div>
