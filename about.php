@@ -201,7 +201,7 @@ session_start();
           <div class="col">
             <div class="h-100 text-center">
               <img
-                src="https://via.placeholder.com/150"
+                src="anthony.jfif"
                 alt="Ana Gonzales"
                 class="card-img-top rounded-circle mx-auto mt-3 team-member"
               />
