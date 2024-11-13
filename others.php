@@ -17,7 +17,7 @@ if ($userRow = $userResult->fetch_assoc()) {
 $userStmt->close();
 
 $filterCategory = isset($_POST['filter_category']) ? $_POST['filter_category'] : '';
-$sortOrder = isset($_POST['sort_order']) ? $_POST['sort_order'] : 'desc'; // Default: Newest
+$sortOrder = isset($_POST['sort_order']) ? $_POST['sort_order'] : 'desc'; 
 
 $postsPerPage = 4;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -169,7 +169,7 @@ $postStmt->close();
 
             <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
             <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-heading">My Posts</h1>
+                <h1 class="h2 text-heading">Other's Posts</h1>
                 <div class="btn-toolbar mb-2 mb-md-0 d-flex flex-nowrap gap-2">
                     <form method="POST" class="d-flex flex-nowrap gap-2 flex-grow-1 flex-md-grow-0 form-responsive">
                         <select class="form-select form-select-sm" name="filter_category" >

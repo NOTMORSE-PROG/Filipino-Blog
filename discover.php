@@ -157,7 +157,6 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
     </select>
 </div>
 
-        </div>
 
     <div id="blogContainer" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             <?php if ($totalPosts == 0): ?>
@@ -215,7 +214,7 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
     </nav>
 <?php endif; ?>
 
-<footer class="py-4 cente">
+<footer class="py-4 center">
       <div class="container">
         <div class="row">
           <div class="col-md-4 mb-3 mb-md-0">
