@@ -69,3 +69,35 @@ body {
     color: var(--bs-primary);
     border-bottom: 2px solid var(--bs-primary);
 }
+
+.facebook-link i {
+    color: #1877f2;
+}
+
+.twitter-link i {
+    color: #1da1f2;
+}
+
+.instagram-link i {
+    color: #e1306c;
+}
+
+.linkedin-link i {
+    color: #0077b5;
+}
+
+.facebook-link i:hover {
+    color: #145dbf;
+}
+
+.twitter-link i:hover {
+    color: #1991db;
+}
+
+.instagram-link i:hover {
+    color: #bc2a8d;
+}
+
+.linkedin-link i:hover {
+    color: #006097;
+}

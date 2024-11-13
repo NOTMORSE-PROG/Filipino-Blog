@@ -247,41 +247,60 @@ if (isset($_GET['id'])) {
         </div>
     </main>
 
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>About FilipinoBlog</h5>
-                    <p>Discover and share the best Filipino content from across the web.</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-light">Home</a></li>
-                        <li><a href="discover.html" class="text-light">Discover</a></li>
-                        <li><a href="about.html" class="text-light">About</a></li>
-                        <?php if (!isset($_SESSION['user_id'])): ?>
-                        <li><a href="login.php" class="text-light">Log in</a></li>
-                      <?php else: ?>
-                        <li><a href="dashboard.php" class="text-light">Dashboard</a></li>
-                      <?php endif; ?>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Connect With Us</h5>
-                    <div class="d-flex">
-                        <a href="#" class="text-light me-3"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-light me-3"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="text-light me-3"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-light"><i class="bi bi-linkedin"></i></a>
-                    </div>
-                </div>
-            </div>
-            <hr class="mt-4 mb-3">
-            <p class="text-center mb-0">&copy; 2024 FilipinoBlog. All rights reserved.</p>
+    <footer class="py-4 cente">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-3 mb-md-0">
+            <h5 class="text-filipino">FilipinoBlog</h5>
+            <p class="text-muted small">
+              Empowering Filipino Voices Since 2024
+            </p>
+          </div>
+          <div class="col-md-4 mb-3 mb-md-0">
+            <h5 class="text-filipino">Quick Links</h5>
+            <ul class="list-unstyled">
+              <li><a href="index.php">Home</a></li>
+              <li><a href="discover.php">Discover</a></li>
+              <li><a href="about.php">About</a></li>
+              <?php if (!isset($_SESSION['user_id'])): ?>
+                <li><a href="login.php">Log in</a></li>
+                <?php else: ?>
+                  <li><a href="dashboard.php">Dashboard</a></li>
+              <?php endif; ?>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h5 class="text-filipino">Connect With Us</h5>
+            <ul class="list-inline">
+              <li class="list-inline-item">
+                <a href="#" class="facebook-link">
+                  <i class="bi bi-facebook"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#" class="text-muted twitter-link">
+                  <i class="bi bi-twitter"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#" class="text-muted instagram-link">
+                  <i class="bi bi-instagram"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#" class="text-muted linkedin-link">
+                  <i class="bi bi-linkedin"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
+        <hr class="my-4 bg-secondary" />
+        <p class="text-center text-muted mb-0">
+          &copy; 2024 FilipinoBlog. All rights reserved.
+        </p>
+      </div>
     </footer>
-
     <script src="bootstrap.bundle.min.js"></script>
   <script>
     const themeToggle = document.getElementById("themeToggle");
