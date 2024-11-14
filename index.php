@@ -78,7 +78,7 @@ session_start();
           voice be heard.
         </p>
         <?php if (!isset($_SESSION['user_id'])): ?>
-            <a href="login.html" class="btn btn-lg btn-outline-light me-2">Start Writing</a>
+            <a href="login.php" class="btn btn-lg btn-outline-light me-2">Start Writing</a>
           <?php else: ?>
               <a href="post.php" class="btn btn-outline-light btn-lg">Start Writing</a>
           <?php endif; ?>

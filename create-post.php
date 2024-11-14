@@ -1,6 +1,5 @@
 <?php
 include('db_connect.php');
-
 session_start();
 
 ini_set('display_errors', 1);
@@ -103,7 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $conn->close();
-
 ?>
 
 <!DOCTYPE html>
@@ -157,12 +155,6 @@ $conn->close();
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Notifications</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Messages</a>
                     </li>
                     <li class="nav-item">
                         <button id="themeToggle" class="btn btn-link nav-link">

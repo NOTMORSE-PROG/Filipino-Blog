@@ -9,12 +9,13 @@ $offset = ($page - 1) * $limit;
 $searchQuery = isset($_GET['search']) ? $_GET['search'] : '';
 $selectedCategory = isset($_GET['category']) ? $_GET['category'] : '';
 
-$totalPostsQuery = "SELECT COUNT(*) as total FROM posts";
+$totalPostsQuery = "SELECT COUNT(*) as total FROM posts p JOIN users u ON p.user_id = u.id";
+
 if ($searchQuery || $selectedCategory) {
     $totalPostsQuery .= " WHERE ";
 
     if ($searchQuery) {
-        $totalPostsQuery .= "(title LIKE '%$searchQuery%' OR content LIKE '%$searchQuery%' OR fullName LIKE '%$searchQuery%')";
+        $totalPostsQuery .= "(p.title LIKE '%$searchQuery%' OR u.fullName LIKE '%$searchQuery%')";
     }
 
     if ($searchQuery && $selectedCategory) {
@@ -22,7 +23,7 @@ if ($searchQuery || $selectedCategory) {
     }
 
     if ($selectedCategory) {
-        $totalPostsQuery .= "category = '$selectedCategory'";
+        $totalPostsQuery .= "p.category = '$selectedCategory'";
     }
 }
 
@@ -49,7 +50,7 @@ if ($searchQuery || $selectedCategory) {
     $postsQuery .= " WHERE ";
 
     if ($searchQuery) {
-        $postsQuery .= "(title LIKE '%$searchQuery%' OR content LIKE '%$searchQuery%' OR fullName LIKE '%$searchQuery%')";
+        $postsQuery .= "(p.title LIKE '%$searchQuery%' OR u.fullName LIKE '%$searchQuery%')";
     }
 
     if ($searchQuery && $selectedCategory) {
@@ -57,7 +58,7 @@ if ($searchQuery || $selectedCategory) {
     }
 
     if ($selectedCategory) {
-        $postsQuery .= "category = '$selectedCategory'";
+        $postsQuery .= "p.category = '$selectedCategory'";
     }
 }
 
@@ -157,6 +158,7 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
     </select>
 </div>
 
+</div>
 
     <div id="blogContainer" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             <?php if ($totalPosts == 0): ?>
@@ -298,14 +300,13 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
 
     </script>
  <script>
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const categorySelect = document.getElementById('categorySelect');
 
     function applyFiltersAndNavigate() {
         const searchValue = searchInput.value.trim();
         const selectedCategory = categorySelect.value;
-
 
         let urlParams = new URLSearchParams(window.location.search);
         if (searchValue) {
@@ -322,10 +323,24 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
         window.location.search = urlParams.toString();
     }
 
-    searchInput.addEventListener('input', applyFiltersAndNavigate);
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            applyFiltersAndNavigate();
+        }
+    });
+
     categorySelect.addEventListener('change', applyFiltersAndNavigate);
+
+    searchInput.addEventListener('input', () => {
+        if (searchInput.value.trim() === '') {
+            categorySelect.value = 'All Categories';
+            applyFiltersAndNavigate();
+        }
+    });
 });
-    </script>
+
+</script>
+
     
 </body>
 </html>
