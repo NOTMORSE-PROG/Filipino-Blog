@@ -1,64 +1,111 @@
 <?php
-include('db_connect.php');
 session_start();
 $_SESSION['referrer'] = $_SERVER['REQUEST_URI'];
-$user_id = $_SESSION['user_id'];  
+include('db_connect.php');
 
-$userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
-$userStmt = $conn->prepare($userProfileQuery);
-$userStmt->bind_param("i", $user_id);
-$userStmt->execute();
-$userResult = $userStmt->get_result();
 
-$userProfilePath = "https://via.placeholder.com/32";  
-if ($userRow = $userResult->fetch_assoc()) {
-    $userProfilePath = $userRow['picture_path'];
+$userProfilePath = "https://via.placeholder.com/32"; 
+if (isset($_SESSION['user_id'])) {
+    $loggedInUserId = $_SESSION['user_id'];
+    $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
+    $userStmt = $conn->prepare($userProfileQuery);
+    $userStmt->bind_param("i", $loggedInUserId);
+    $userStmt->execute();
+    $userResult = $userStmt->get_result();
+    if ($userRow = $userResult->fetch_assoc()) {
+        $userProfilePath = $userRow['picture_path'];
+    }
+    $userStmt->close();
 }
-$userStmt->close();
 
-$filterCategory = isset($_POST['filter_category']) ? $_POST['filter_category'] : '';
-$sortOrder = isset($_POST['sort_order']) ? $_POST['sort_order'] : 'desc'; 
-
-$postsPerPage = 4;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $postsPerPage;
+$limit = 4;
+$offset = ($page - 1) * $limit;
+$searchQuery = isset($_GET['search']) ? $_GET['search'] : '';
+$selectedCategory = isset($_GET['category']) ? $_GET['category'] : '';
+$sortOrder = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'desc';
 
-$countQuery = "SELECT COUNT(*) as cnt FROM posts";
-if ($filterCategory) {
-    $countQuery .= " WHERE category = ?";
-}
-$countStmt = $conn->prepare($countQuery);
-if ($filterCategory) {
-    $countStmt->bind_param("s", $filterCategory);
-}
-$countStmt->execute();
-$countResult = $countStmt->get_result();
-$totalPosts = $countResult->fetch_assoc()['cnt'];
-$totalPages = ceil($totalPosts / $postsPerPage);
+$totalPostsQuery = "SELECT COUNT(*) as total FROM posts";
+$whereClauses = [];
+$params = [];
+$types = '';
 
-$postQuery = "SELECT p.*, u.fullName as username, up.picture_path as user_picture
-              FROM posts p
-              JOIN users u ON p.user_id = u.id
-              JOIN user_profile up ON up.user_id = u.id";
-if ($filterCategory) {
-    $postQuery .= " WHERE p.category = ?";
+if ($searchQuery) {
+    $whereClauses[] = "(title LIKE ? OR content LIKE ? OR user_id LIKE ?)";
+    $searchParam = "%$searchQuery%";
+    $params[] = &$searchParam;
+    $params[] = &$searchParam;
+    $params[] = &$searchParam;
+    $types .= 'sss';
 }
-$postQuery .= " ORDER BY p.created_at $sortOrder LIMIT ?, ?";
-$postStmt = $conn->prepare($postQuery);
-if ($filterCategory) {
-    $postStmt->bind_param("sii", $filterCategory, $offset, $postsPerPage);
-} else {
-    $postStmt->bind_param("ii", $offset, $postsPerPage);
-}
-$postStmt->execute();
-$postResult = $postStmt->get_result();
 
+if ($selectedCategory) {
+    $whereClauses[] = "category = ?";
+    $params[] = &$selectedCategory;
+    $types .= 's';
+}
+
+if (!empty($whereClauses)) {
+    $totalPostsQuery .= " WHERE " . implode(" AND ", $whereClauses);
+}
+
+$totalPostsStmt = $conn->prepare($totalPostsQuery);
+if ($types) {
+    $totalPostsStmt->bind_param($types, ...$params);
+}
+$totalPostsStmt->execute();
+$totalPostsResult = $totalPostsStmt->get_result();
+$totalPostsRow = $totalPostsResult->fetch_assoc();
+$totalPosts = $totalPostsRow['total'];
+$totalPages = ceil($totalPosts / $limit);
+$totalPostsStmt->close();
+
+$postsQuery = "
+    SELECT 
+        p.*, 
+        u.fullName AS username 
+    FROM 
+        posts p 
+    JOIN 
+        users u 
+    ON 
+        p.user_id = u.id ";
+
+if (!empty($whereClauses)) {
+    $postsQuery .= " WHERE " . implode(" AND ", $whereClauses);
+}
+
+$postsQuery .= " ORDER BY p.created_at $sortOrder LIMIT ? OFFSET ?";
+
+$params[] = &$limit;
+$params[] = &$offset;
+$types .= 'ii';
+
+$postsStmt = $conn->prepare($postsQuery);
+$postsStmt->bind_param($types, ...$params);
+$postsStmt->execute();
+$postsResult = $postsStmt->get_result();
 $posts = [];
-while ($row = $postResult->fetch_assoc()) {
-    $posts[] = $row;
+
+while ($post = $postsResult->fetch_assoc()) {
+    $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
+    $userStmt = $conn->prepare($userProfileQuery);
+    $userStmt->bind_param("i", $post['user_id']);
+    $userStmt->execute();
+    $userResult = $userStmt->get_result();
+    $userProfilePathForPost = "https://via.placeholder.com/32";  
+
+    if ($userRow = $userResult->fetch_assoc()) {
+        $userProfilePathForPost = $userRow['picture_path'];
+    }
+    $userStmt->close();
+    $post['user_profile_path'] = $userProfilePathForPost;
+    $posts[] = $post;
 }
-$postStmt->close();
+
+$postsStmt->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -72,30 +119,27 @@ $postStmt->close();
 </head>
 <style>
     @media (max-width: 767.98px) {
-  .sidebar {
-    position: fixed;
-    top: 56px;
-    bottom: 0;
-    left: -100%;
-    z-index: 1000;
-    transition: all 0.3s ease-in-out;
-    width: 200px;
-  }
-
-  .sidebar.show {
-    left: 0;
-  }
-
-  .content-wrapper {
-    margin-left: 0 !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .content-wrapper {
-    margin-left: 200px;
-  }
-}
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: -100%;
+            z-index: 1000;
+            transition: all 0.3s ease-in-out;
+            width: 200px;
+        }
+        .sidebar.show {
+            left: 0;
+        }
+        .content-wrapper {
+            margin-left: 0 !important;
+        }
+    }
+    @media (min-width: 768px) {
+        .content-wrapper {
+            margin-left: 200px;
+        }
+    }
 </style>
 <body>
 <nav class="navbar navbar-expand-lg sticky-top">
@@ -168,32 +212,33 @@ $postStmt->close();
 
 
             <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 content-wrapper">
-            <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-heading">Other's Posts</h1>
-                <div class="btn-toolbar mb-2 mb-md-0 d-flex flex-nowrap gap-2">
-                    <form method="POST" class="d-flex flex-nowrap gap-2 flex-grow-1 flex-md-grow-0 form-responsive">
-                        <select class="form-select form-select-sm" name="filter_category" >
-                            <option value="" >All</option>
-                            <?php
-                            $categories = ['Travel', 'Food', 'Culture', 'Lifestyle', 'Technology']; 
-                            foreach ($categories as $category) {
-                                echo '<option value="' . $category . '">' . $category . '</option>';
-                            }
-                            ?>
-                        </select>
-                        <select class="form-select form-select-sm" name="sort_order">
-                            <option value="asc">Oldest</option>
-                            <option value="desc">Newest</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center btn-responsive">
-                            <i class="bi bi-filter"></i> Apply
-                        </button>
-                    </form>
-                    <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive">
-                        <i class="bi bi-plus-lg"></i> New
-                    </a>
+                <div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2 text-heading">Other's Posts</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0 d-flex flex-nowrap gap-2">
+                        <form method="GET" class="d-flex flex-nowrap gap-2 flex-grow-1 flex-md-grow-0 form-responsive">
+                            <select class="form-select form-select-sm" name="category">
+                                <option value="">All</option>
+                                <?php
+                                $categories = ['Travel', 'Food', 'Culture', 'Lifestyle', 'Technology'];
+                                foreach ($categories as $category) {
+                                    $selected = isset($_GET['category']) && $_GET['category'] == $category ? 'selected' : '';
+                                    echo '<option value="' . htmlspecialchars($category) . '" ' . $selected . '>' . htmlspecialchars($category) . '</option>';
+                                }
+                                ?>
+                            </select>
+                            <select class="form-select form-select-sm" name="sort_order">
+                                <option value="asc" <?php echo isset($_GET['sort_order']) && $_GET['sort_order'] == 'asc' ? 'selected' : ''; ?>>Oldest</option>
+                                <option value="desc" <?php echo isset($_GET['sort_order']) && $_GET['sort_order'] == 'desc' ? 'selected' : ''; ?>>Newest</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center btn-responsive">
+                                <i class="bi bi-filter"></i> Apply
+                            </button>
+                        </form>
+                        <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive">
+                            <i class="bi bi-plus-lg"></i> New
+                        </a>
+                    </div>
                 </div>
-            </div>
 
                 <?php if (empty($posts)): ?>
                 <div class="text-center">
@@ -215,8 +260,9 @@ $postStmt->close();
                                     echo (strlen($content) > 150) ? substr($content, 0, 150) . '...' : $content;
                                     ?>
                                 </p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <a href="view-others.php?post_id=<?= $post['id']; ?>" class="btn btn-sm btn-filipino">Read More</a>
+                                <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="view-others.php?post_id=<?= htmlspecialchars($post['id']); ?>" class="btn btn-sm btn-filipino">Read More</a>
                                 </div>
                             </div>
                         </div>
@@ -239,7 +285,7 @@ $postStmt->close();
                         </li>
                     </ul>
                 </nav>
-                <?php endif; ?>
+                <?php endif; ?>   
             </main>
         </div>
     </div>

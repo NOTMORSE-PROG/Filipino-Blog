@@ -11,7 +11,7 @@ if ($postId == 0) {
 
 $postQuery = $conn->prepare('
     SELECT p.title, p.content, p.created_at AS publish_date, p.featured_image AS image_path, 
-           u.id AS user_id, u.fullName, up.bio, up.picture_path, p.tags 
+           u.id AS user_id, u.fullName, up.bio, up.picture_path, p.tags, p.category 
     FROM posts p 
     INNER JOIN users u ON p.user_id = u.id 
     LEFT JOIN user_profile up ON u.id = up.user_id 
@@ -67,58 +67,58 @@ $tags = !empty($post['tags']) ? explode(',', $post['tags']) : [];
     </nav>
 
     <main class="container py-5">
-    <div class="row">
-        <div class="col-lg-8">
-        <a href="<?php echo htmlspecialchars($referrer); ?>" class="btn btn-sm btn-outline-secondary" style="margin-bottom: 20px;">
-    <i class="bi bi-arrow-left"></i> Back to Posts
-</a>
-            <article>
-                <h1 class="mb-4"><?php echo htmlspecialchars($post['title']); ?></h1>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center">
-                        <img src="<?php echo !empty($post['picture_path']) ? htmlspecialchars($post['picture_path']) : 'https://via.placeholder.com/64'; ?>" alt="Author Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                        <div>
-                            <h5 class="mb-0"><?php echo htmlspecialchars($post['fullName']); ?></h5>
-                            <small class="text-muted">Published on <?php echo date('F j, Y', strtotime($post['publish_date'])); ?></small>
+        <div class="row">
+            <div class="col-lg-8">
+            <a href="<?php echo htmlspecialchars($referrer); ?>" class="btn btn-sm btn-outline-secondary" style="margin-bottom: 20px;">
+        <i class="bi bi-arrow-left"></i> Back to Posts</a>
+                <article>
+                    <h1 class="mb-4"><?php echo htmlspecialchars($post['title']); ?></h1>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <img src="<?php echo !empty($post['picture_path']) ? htmlspecialchars($post['picture_path']) : 'https://via.placeholder.com/64'; ?>" alt="Author Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0"><?php echo htmlspecialchars($post['fullName']); ?></h5>
+                                <small class="text-muted">Published on <?php echo date('F j, Y', strtotime($post['publish_date'])); ?></small>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <?php if (isset($post['category'])): ?>
-                            <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
-                        <?php endif; ?>
+                    <img src="<?php echo !empty($post['image_path']) ? htmlspecialchars($post['image_path']) : 'https://via.placeholder.com/800x400'; ?>" alt="Featured Image" class="img-fluid rounded mb-4 post-image">
+                    <div class="content">
+                        <?php echo nl2br(htmlspecialchars($post['content'])); ?>
                     </div>
-                </div>
-                <img src="<?php echo !empty($post['image_path']) ? htmlspecialchars($post['image_path']) : 'https://via.placeholder.com/800x400'; ?>" alt="Featured Image" class="img-fluid rounded mb-4 post-image">
-                <div class="content">
-                    <?php echo nl2br(htmlspecialchars($post['content'])); ?>
-                </div>
-                <div class="mt-4">
-                    <h3 style = "margin-bottom: 20px;">Tags</h3>
-                    <div class="d-flex flex-wrap gap-2">
-                        <?php foreach ($tags as $tag): ?>
-                            <a href="#" class="btn btn-sm btn-outline-secondary" style = "margin-bottom: 20px;">#<?php echo htmlspecialchars(trim($tag)); ?></a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </article>
-        </div>
-        <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h4 class="card-title">About the Author</h4>
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="<?php echo !empty($post['picture_path']) ? htmlspecialchars($post['picture_path']) : 'https://via.placeholder.com/64'; ?>" alt="Author Avatar" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                        <div>
-                            <h5 class="mb-0"><?php echo htmlspecialchars($post['fullName']); ?></h5>
+                    <div class="mt-4">
+                        <h3 style = "margin-bottom: 20px;">Tags</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php foreach ($tags as $tag): ?>
+                                <a href="#" class="btn btn-sm btn-outline-secondary" style = "margin-bottom: 20px;">#<?php echo htmlspecialchars(trim($tag)); ?></a>
+                            <?php endforeach; ?>
                         </div>
                     </div>
-                    <p><?php echo !empty($post['bio']) ? nl2br(htmlspecialchars($post['bio'])) : 'No bio available.'; ?></p>
-                    <button class="btn btn-primary" onclick="window.location.href='user-profile.php?id=<?= htmlspecialchars($post['user_id']) ?>'">View Profile</button>
-                </div>
+                </article>
             </div>
-        </div>
-    </div>
-</main>
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">About the Author</h4>
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="<?php echo !empty($post['picture_path']) ? htmlspecialchars($post['picture_path']) : 'https://via.placeholder.com/64'; ?>" alt="Author Avatar" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0"><?php echo htmlspecialchars($post['fullName']); ?></h5>
+                            </div>
+                        </div>
+                        <p><?php echo !empty($post['bio']) ? nl2br(htmlspecialchars($post['bio'])) : 'No bio available.'; ?></p>
+                        <button class="btn btn-primary" onclick="window.location.href='user-profile.php?id=<?= htmlspecialchars($post['user_id']) ?>'">View Profile</button>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">Categories</h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="#" class="btn btn-outline-secondary btn-sm"><?php echo htmlspecialchars($post['category']); ?></a>
+                        </div>
+                    </div>
+                </div>
+        </main>
 
     <script src="bootstrap.bundle.min.js"></script>
     <script>

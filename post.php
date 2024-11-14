@@ -176,7 +176,6 @@ $result = $stmt->get_result();
                     </a>
                 </div>
             </div>
-
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
                 <?php
                 if ($result->num_rows > 0) {
@@ -190,7 +189,7 @@ $result = $stmt->get_result();
                         echo '            <p class="card-text">' . htmlspecialchars($content_preview) . '</p>';
                         echo '            <div class="d-flex justify-content-between align-items-center">';
                         echo '                <small class="text-muted">Posted on ' . htmlspecialchars($row['created_at']) . '</small>';
-                        echo '                <span class="badge bg-primary rounded-pill">Views</span>';
+                        echo '                <span class="badge bg-primary rounded-pill">' . htmlspecialchars($row['category']) . '</span>';
                         echo '            </div>';
                         echo '        </div>';
                         echo '        <div class="card-footer bg-transparent border-top-0">';

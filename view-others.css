@@ -101,3 +101,9 @@ body {
 .linkedin-link i:hover {
     color: #006097;
 }
+
+.author-avatar {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+}
