@@ -82,11 +82,7 @@ session_start();
           <?php else: ?>
               <a href="post.php" class="btn btn-outline-light btn-lg">Start Writing</a>
           <?php endif; ?>
-        <?php if (!isset($_SESSION['user_id'])): ?>
-              <a href="login.php" class="btn btn-outline-light btn-lg">Explore Blogs</a>
-          <?php else: ?>
-              <a href="others.php" class="btn btn-outline-light btn-lg">Explore Blogs</a>
-          <?php endif; ?>
+          <a href="discover.php" class="btn btn-outline-light btn-lg">Explore Blogs</a>
       </div>
     </header>
 
