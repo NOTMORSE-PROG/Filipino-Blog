@@ -102,11 +102,7 @@ session_start();
                 <p class="card-text">
                   Exploring the hidden gems of our 7,641 islands...
                 </p>
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="login.php" class="btn btn-filipino">Read More</a>
-                <?php else: ?>
-                  <a href="others.php" class="btn btn-filipino">Read More</a>
-                <?php endif; ?>
+                <a href="discover.php" class="btn btn-filipino">Read More</a>
               </div>
             </div>
           </div>
@@ -122,11 +118,7 @@ session_start();
                 <p class="card-text">
                   From balut to isaw: A journey through local delicacies...
                 </p>
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="login.php" class="btn btn-filipino">Read More</a>
-                <?php else: ?>
-                  <a href="others.php" class="btn btn-filipino">Read More</a>
-                <?php endif; ?>
+                <a href="discover.php" class="btn btn-filipino">Read More</a>
               </div>
             </div>
           </div>
@@ -142,11 +134,7 @@ session_start();
                 <p class="card-text">
                   How modern Filipinos keep ancient customs alive...
                 </p>
-                <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="login.php" class="btn btn-filipino">Read More</a>
-                <?php else: ?>
-                  <a href="others.php" class="btn btn-filipino">Read More</a>
-                <?php endif; ?>
+                <a href="discover.php" class="btn btn-filipino">Read More</a>
               </div>
             </div>
           </div>
