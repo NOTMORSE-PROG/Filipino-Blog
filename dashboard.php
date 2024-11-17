@@ -1,8 +1,147 @@
 <?php
 include('db_connect.php');
 session_start();
+function time_ago($timestamp) {
+    $time_ago = strtotime($timestamp);
+    $current_time = time();
+    $time_difference = $current_time - $time_ago;
+    $seconds = $time_difference;
+    $minutes      = round($seconds / 60);      
+    $hours        = round($seconds / 3600);         
+    $days         = round($seconds / 86400);       
+    $weeks        = round($seconds / 604800);       
+    $months       = round($seconds / 2629440);      
+    $years        = round($seconds / 31553280);     
+
+    if ($seconds <= 60) {
+        return "Just Now";
+    } else if ($minutes <= 60) {
+        if ($minutes == 1) {
+            return "one minute ago";
+        } else {
+            return "$minutes minutes ago";
+        }
+    } else if ($hours <= 24) {
+        if ($hours == 1) {
+            return "an hour ago";
+        } else {
+            return "$hours hours ago";
+        }
+    } else if ($days <= 7) {
+        if ($days == 1) {
+            return "yesterday";
+        } else {
+            return "$days days ago";
+        }
+    } else if ($weeks <= 4.3) { // 4.3 == 30/7
+        if ($weeks == 1) {
+            return "one week ago";
+        } else {
+            return "$weeks weeks ago";
+        }
+    } else if ($months <= 12) {
+        if ($months == 1) {
+            return "one month ago";
+        } else {
+            return "$months months ago";
+        }
+    } else {
+        if ($years == 1) {
+            return "one year ago";
+        } else {
+            return "$years years ago";
+        }
+    }
+}
+
+
 $user_id = $_SESSION['user_id'];  
 
+$sql_posts = "SELECT COUNT(*) AS total_posts FROM posts WHERE user_id = $user_id";
+$result_posts = $conn->query($sql_posts);
+$row_posts = $result_posts->fetch_assoc();
+$total_posts = $row_posts['total_posts'];
+
+$sql_previous_posts = "SELECT COUNT(*) AS previous_total_posts FROM posts WHERE user_id = $user_id AND created_at >= NOW() - INTERVAL 7 DAY";
+$result_previous_posts = $conn->query($sql_previous_posts);
+$row_previous_posts = $result_previous_posts->fetch_assoc();
+$previous_total_posts = $row_previous_posts['previous_total_posts'];
+
+if ($previous_total_posts > 0) {
+    $post_rate = (($total_posts - $previous_total_posts) / $previous_total_posts) * 100;
+} else {
+    $post_rate = 0;
+}
+
+$sql_comments = "SELECT COUNT(*) AS total_comments FROM comments WHERE user_id = $user_id";
+$result_comments = $conn->query($sql_comments);
+$row_comments = $result_comments->fetch_assoc();
+$total_comments = $row_comments['total_comments'];
+
+$sql_previous_comments = "SELECT COUNT(*) AS previous_total_comments FROM comments WHERE user_id = $user_id AND created_at >= NOW() - INTERVAL 7 DAY";
+$result_previous_comments = $conn->query($sql_previous_comments);
+$row_previous_comments = $result_previous_comments->fetch_assoc();
+$previous_total_comments = $row_previous_comments['previous_total_comments'];
+
+if ($previous_total_comments > 0) {
+    $comments_rate = (($total_comments - $previous_total_comments) / $previous_total_comments) * 100;
+} else {
+    $comments_rate = 0;
+}
+
+
+$categories = [];
+$category_counts = [];
+
+$sql_categories = "SELECT category, COUNT(*) AS category_count FROM posts WHERE user_id = ? GROUP BY category";
+$stmt = $conn->prepare($sql_categories);
+$stmt->bind_param("i", $user_id); 
+$stmt->execute();
+$result_categories = $stmt->get_result();
+
+if ($result_categories->num_rows > 0) {
+    while ($row = $result_categories->fetch_assoc()) {
+        $categories[] = $row['category'];
+        $category_counts[] = (int)$row['category_count'];
+    }
+}
+
+$sql_recent_posts = "SELECT id, title, category, created_at FROM posts WHERE user_id = $user_id ORDER BY created_at DESC LIMIT 3";
+$result_recent_posts = $conn->query($sql_recent_posts);
+$recent_posts = [];
+if ($result_recent_posts->num_rows > 0) {
+    while ($row = $result_recent_posts->fetch_assoc()) {
+        $recent_posts[] = $row;
+    }
+}
+
+$sql_comments = "SELECT c.comment, c.created_at, p.title AS post_title, u.fullName 
+                 FROM comments c
+                 JOIN posts p ON c.post_id = p.id
+                 JOIN users u ON c.user_id = u.id
+                 WHERE c.user_id = ? 
+                 ORDER BY c.created_at DESC LIMIT 3";
+
+$stmt_comments = $conn->prepare($sql_comments);
+$stmt_comments->bind_param("i", $user_id); 
+$stmt_comments->execute();
+$result_comments = $stmt_comments->get_result();
+
+$comments = [];
+if ($result_comments->num_rows > 0) {
+    while ($row = $result_comments->fetch_assoc()) {
+        $comments[] = $row;
+    }
+}
+
+$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("i", $user_id);
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
@@ -70,6 +209,14 @@ $userStmt->close();
                         <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="notification.php">
+                            Notifications
+                            <?php if ($unreadCount > 0): ?>
+                                <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <button id="themeToggle" class="btn btn-link nav-link">
                             <i class="bi bi-sun-fill"></i>
                         </button>
@@ -95,10 +242,15 @@ $userStmt->close();
             <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
+                    <li class="nav-item d-md-none">
+                            <a class="nav-link" href="index.php">
+                                <i class="bi bi-house-door me-2"></i>
+                                Home
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link active" href="dashboard.php">
-                                <i class="bi bi-house-door me-2"></i>
-                                Dashboard
+                                <i class="bi bi-grid me-2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
@@ -111,6 +263,15 @@ $userStmt->close();
                             <a class="nav-link" href="others.php">
                                 <i class="bi bi-people me-2"></i>
                                 See Others' Posts
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="notification.php">
+                                <i class="bi bi-bell me-2"></i>
+                                Notifications
+                                <?php if ($unreadCount > 0): ?>
+                                    <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                                <?php endif; ?>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -127,25 +288,23 @@ $userStmt->close();
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Dashboard</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                            <i class="bi bi-calendar"></i>
-                            This week
-                        </button>
-                    </div>
                 </div>
 
                 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
                     <div class="col">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Total Posts</h5>
-                                <p class="card-text display-4">150</p>
-                                <p class="card-text text-success"><i class="bi bi-arrow-up"></i> 12% increase</p>
+                            <h5 class="card-title">Total Posts</h5>
+                            <p class="card-text display-4"><?php echo $total_posts; ?></p>
+                            <?php
+                                if ($post_rate > 0) {
+                                    echo '<p class="card-text text-success"><i class="bi bi-arrow-up"></i> ' . round($post_rate, 2) . '% increase</p>';
+                                } elseif ($post_rate < 0) {
+                                    echo '<p class="card-text text-danger"><i class="bi bi-arrow-down"></i> ' . round(abs($post_rate), 2) . '% decrease</p>';
+                                } else {
+                                    echo '<p class="card-text text-muted"><i class="bi bi-arrow-right"></i> No change</p>';
+                                }
+                            ?>
                             </div>
                         </div>
                     </div>
@@ -161,9 +320,17 @@ $userStmt->close();
                     <div class="col">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Comments</h5>
-                                <p class="card-text display-4">324</p>
-                                <p class="card-text text-danger"><i class="bi bi-arrow-down"></i> 3% decrease</p>
+                            <h5 class="card-title">Comments</h5>
+                            <p class="card-text display-4"><?php echo $total_comments; ?></p>
+                            <?php
+                                if ($comments_rate > 0) {
+                                    echo '<p class="card-text text-success"><i class="bi bi-arrow-up"></i> ' . round($comments_rate, 2) . '% increase</p>';
+                                } elseif ($comments_rate < 0) {
+                                    echo '<p class="card-text text-danger"><i class="bi bi-arrow-down"></i> ' . round(abs($comments_rate), 2) . '% decrease</p>';
+                                } else {
+                                    echo '<p class="card-text text-muted"><i class="bi bi-arrow-right"></i> No change</p>';
+                                }
+                            ?>
                             </div>
                         </div>
                     </div>
@@ -200,34 +367,27 @@ $userStmt->close();
                         </div>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">Recent Posts</h5>
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">The Beauty of Philippine Beaches</h6>
-                                            <small class="text-muted">Posted 2 days ago</small>
-                                        </div>
-                                        <span class="badge bg-primary rounded-pill">1.2k views</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">Filipino Cuisine: A Gastronomic Journey</h6>
-                                            <small class="text-muted">Posted 5 days ago</small>
-                                        </div>
-                                        <span class="badge bg-primary rounded-pill">980 views</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-0">The Rich History of Philippine Literature</h6>
-                                            <small class="text-muted">Posted 1 week ago</small>
-                                        </div>
-                                        <span class="badge bg-primary rounded-pill">756 views</span>
-                                    </li>
+                                    <?php if (empty($recent_posts)): ?>
+                                        <li class="list-group-item">
+                                            Nothing posted yet
+                                        </li>
+                                    <?php else: ?>
+                                        <?php foreach ($recent_posts as $post): ?>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0"><?php echo htmlspecialchars($post['title']); ?></h6>
+                                                    <small class="text-muted">Posted <?php echo time_ago($post['created_at']); ?> ago</small>
+                                                </div>
+                                                <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </ul>
                             </div>
                         </div>
@@ -237,30 +397,22 @@ $userStmt->close();
                             <div class="card-body">
                                 <h5 class="card-title">Recent Comments</h5>
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">Juan dela Cruz</h6>
-                                            <small class="text-muted">3 days ago</small>
-                                        </div>
-                                        <p class="mb-1">Great article! I learned so much about our local beaches.</p>
-                                        <small class="text-muted">On: The Beauty of Philippine Beaches</small>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">Maria Santos</h6>
-                                            <small class="text-muted">5 days ago</small>
-                                        </div>
-                                        <p class="mb-1">Your recipes are amazing! Can't wait to try them.</p>
-                                        <small class="text-muted">On: Filipino Cuisine: A Gastronomic Journey</small>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">Carlos Reyes</h6>
-                                            <small class="text-muted">1 week ago</small>
-                                        </div>
-                                        <p class="mb-1">This is a comprehensive overview of our literary heritage.</p>
-                                        <small class="text-muted">On: The Rich History of Philippine Literature</small>
-                                    </li>
+                                    <?php if (count($comments) > 0): ?>
+                                        <?php foreach ($comments as $comment): ?>
+                                            <li class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1"><?php echo htmlspecialchars($comment['fullName']); ?></h6>
+                                                    <small class="text-muted"><?php echo time_ago($comment['created_at']); ?></small>
+                                                </div>
+                                                <p class="mb-1"><?php echo htmlspecialchars($comment['comment']); ?></p>
+                                                <small class="text-muted">On: <?php echo htmlspecialchars($comment['post_title']); ?></small>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <li class="list-group-item">
+                                            <div class="text-center">No comments</div>
+                                        </li>
+                                    <?php endif; ?>
                                 </ul>
                             </div>
                         </div>
@@ -293,21 +445,29 @@ $userStmt->close();
         });
 
 
-        const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
-        new Chart(categoriesCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Travel', 'Food', 'Culture', 'History', 'Lifestyle'],
-                datasets: [{
-                    data: [30, 25, 20, 15, 10],
-                    backgroundColor: ['#FCD116', '#0038A8', '#CE1126', '#00A86B', '#7D0063']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+        const categories = <?php echo json_encode($categories); ?>;
+        const categoryCounts = <?php echo json_encode($category_counts); ?>;
+        const chartContainer = document.getElementById('categoriesChart').parentElement;
+        
+        if (categories.length === 0 || categoryCounts.every(count => count === 0)) {
+            chartContainer.innerHTML = '<p class="text-center">Nothing posted yet</p>';
+        } else {
+            const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+            new Chart(categoriesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: categoryCounts,
+                        backgroundColor: ['#FCD116', '#0038A8', '#CE1126', '#00A86B', '#7D0063'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
     </script>
 </body>
 </html>

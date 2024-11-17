@@ -1,16 +1,25 @@
 <?php
 include('db_connect.php');
-
 session_start();
+$_SESSION['referrer'] = $_SERVER['REQUEST_URI'];
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
 $user_id = $_SESSION['user_id'];
 
-if (isset($_POST['delete_post'])) {
-    $postId = $_POST['post_id'];
+$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("i", $user_id);
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
+if (isset($_POST['delete_post']) && isset($_POST['post_id'])) {
+    $postId = (int) $_POST['post_id'];
     $query = "SELECT featured_image FROM posts WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $postId);
@@ -22,11 +31,14 @@ if (isset($_POST['delete_post'])) {
         unlink($post['featured_image']);
     }
 
-    $query = "DELETE FROM posts WHERE id = ?";
+    $query = "DELETE FROM posts WHERE id = ? AND user_id = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $postId);
+    $stmt->bind_param("ii", $postId, $user_id);
     $stmt->execute();
+    $stmt->close();
 
+    header('Location: post.php');
+    exit();
 }
 
 $userProfileQuery = "SELECT picture_path, bio FROM user_profile WHERE user_id = ?";
@@ -35,7 +47,7 @@ $userStmt->bind_param("i", $user_id);
 $userStmt->execute();
 $userResult = $userStmt->get_result();
 
-$userProfilePath = "https://via.placeholder.com/32";  
+$userProfilePath = "https://via.placeholder.com/32"; 
 $userBio = "No bio available."; 
 if ($userRow = $userResult->fetch_assoc()) {
     $userProfilePath = $userRow['picture_path'];
@@ -43,14 +55,16 @@ if ($userRow = $userResult->fetch_assoc()) {
 }
 $userStmt->close();
 
-
 if (isset($_GET['id'])) {
-    $postId = $_GET['id'];
-    $postQuery = "SELECT p.id, p.title, p.content, p.category, p.tags, p.featured_image, p.created_at, 
-                         u.fullName AS author 
-                  FROM posts p 
-                  JOIN users u ON p.user_id = u.id 
-                  WHERE p.id = ? AND p.user_id = ?";  
+    $postId = (int) $_GET['id'];
+
+    $postQuery = "
+        SELECT p.id, p.title, p.content, p.category, p.tags, p.featured_image, p.created_at, 
+               u.fullName AS author 
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id 
+        WHERE p.id = ? AND p.user_id = ?
+    ";
     $postStmt = $conn->prepare($postQuery);
     $postStmt->bind_param("ii", $postId, $user_id);
     $postStmt->execute();
@@ -74,7 +88,7 @@ if (isset($_GET['id'])) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_tag']) && isset($_POST['post_id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_tag']) && isset($_POST['post_id'])) {
     $new_tag = trim($_POST['new_tag']);
     $post_id = (int) $_POST['post_id'];
 
@@ -87,37 +101,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['new_tag']) && isset($_
 
         if ($tagsRow = $tagsResult->fetch_assoc()) {
             $tags = $tagsRow['tags'];
-            $tagsArray = explode(',', $tags);
-            $tagsArray[] = $new_tag;
-            $updatedTags = implode(',', $tagsArray);
+            $tagsArray = array_map('trim', explode(',', $tags));
+            if (!in_array($new_tag, $tagsArray)) {
+                $tagsArray[] = $new_tag;
+                $updatedTags = implode(', ', $tagsArray);
 
-            $updateTagsQuery = "UPDATE posts SET tags = ? WHERE id = ?";
-            $updateStmt = $conn->prepare($updateTagsQuery);
-            $updateStmt->bind_param("si", $updatedTags, $post_id);
-            $updateStmt->execute();
-            $updateStmt->close();
-
-            $tags = $updatedTags;
+                $updateTagsQuery = "UPDATE posts SET tags = ? WHERE id = ?";
+                $updateStmt = $conn->prepare($updateTagsQuery);
+                $updateStmt->bind_param("si", $updatedTags, $post_id);
+                $updateStmt->execute();
+                $updateStmt->close();
+            }
         }
         $tagsStmt->close();
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_post']) && isset($_POST['post_id'])) {
-    $post_id = (int) $_POST['post_id'];
-
-    $deleteQuery = "DELETE FROM posts WHERE id = ? AND user_id = ?";
-    $deleteStmt = $conn->prepare($deleteQuery);
-    $deleteStmt->bind_param("ii", $post_id, $user_id);
-    $deleteStmt->execute();
-    $deleteStmt->close();
-
-    header('Location: post.php');
-    exit();
-}
+$commentsQuery = $conn->prepare('
+    SELECT c.comment, c.created_at, u.fullName, up.picture_path, u.id AS user_id 
+    FROM comments c 
+    INNER JOIN users u ON c.user_id = u.id 
+    LEFT JOIN user_profile up ON u.id = up.user_id 
+    WHERE c.post_id = ? 
+    ORDER BY c.created_at DESC
+');
+$commentsQuery->bind_param('i', $postId);
+$commentsQuery->execute();
+$commentsResult = $commentsQuery->get_result();
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -168,10 +182,17 @@ $conn->close();
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
+                <li class="nav-item">
                         <a class="nav-link" href="index.php">Home</a>
                     </li>
-
+                    <li class="nav-item">
+                        <a class="nav-link" href="notification.php">
+                            Notifications
+                            <?php if ($unreadCount > 0): ?>
+                                <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <button id="themeToggle" class="btn btn-link nav-link">
                             <i class="bi bi-sun-fill"></i>
@@ -198,10 +219,15 @@ $conn->close();
             <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
+                    <li class="nav-item d-md-none">
+                            <a class="nav-link" href="index.php">
+                                <i class="bi bi-house-door me-2"></i>
+                                Home
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="dashboard.php">
-                                <i class="bi bi-house-door me-2"></i>
-                                Dashboard
+                                <i class="bi bi-grid me-2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
@@ -214,6 +240,15 @@ $conn->close();
                             <a class="nav-link" href="others.php">
                                 <i class="bi bi-people me-2"></i>
                                 See Others' Posts
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="notification.php">
+                                <i class="bi bi-bell me-2"></i>
+                                Notifications
+                                <?php if ($unreadCount > 0): ?>
+                                    <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                                <?php endif; ?>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -267,12 +302,33 @@ $conn->close();
                                         <div class="input-group">
                                             <input type="hidden" name="post_id" value="<?php echo htmlspecialchars($postId); ?>">
                                             <input type="text" class="form-control" id="newTag" name="new_tag" placeholder="Enter a new tag">
-                                            <button class="btn btn-filipino" type="submit">Add Tag</button>
+                                            <button class="btn btn-filipino" type="submit" style = "color: black;">Add Tag</button>
                                         </div>
                                     </div>
                                 </form>
                             </div>
                         </div>
+                        <section class="mt-5">
+                            <h3 style = "margin-bottom: 50px;">Comments</h3>
+                            <?php if ($commentsResult && $commentsResult->num_rows > 0): ?>
+                                <?php while ($comment = $commentsResult->fetch_assoc()): ?>
+                                    <div class="mb-4 comment-container">
+                                        <div class="d-flex mb-3">
+                                            <img src="<?php echo !empty($comment['picture_path']) ? htmlspecialchars($comment['picture_path']) : 'https://via.placeholder.com/48'; ?>" alt="User Avatar" class="rounded-circle me-3 comment-avatar" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <div>
+                                                <h5 class="mb-0"><?php echo htmlspecialchars($comment['fullName']); ?></h5>
+                                                <small class="text-muted">Posted on <?php echo date('F j, Y, g:i a', strtotime($comment['created_at'])); ?></small>
+                                                <p class="mt-2"><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
+                                            </div>
+                                            <button class="btn btn-primary ms-auto" style = "height: 50px;"  onclick="window.location.href='user-profile.php?id=<?= htmlspecialchars($comment['user_id']) ?>'" style>View Profile</button>
+                                        </div>
+                                        <hr class="comment-separator">
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p>No comments available.</p>
+                            <?php endif; ?>
+                        </section>
                     </div>
 
                     <div class="col-lg-4">

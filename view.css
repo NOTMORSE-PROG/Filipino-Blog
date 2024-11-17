@@ -99,28 +99,20 @@ body {
     color: var(--bg-color);
 }
 
-@media (max-width: 767.98px) {
-    .sidebar {
-        position: fixed;
-        top: 56px;
-        bottom: 0;
-        left: -100%;
-        z-index: 1000;
-        transition: all 0.3s ease-in-out;
-        width: 200px;
-    }
-
-    .sidebar.show {
-        left: 0;
-    }
-
-    .content-wrapper {
-        margin-left: 0 !important;
-    }
+.comment-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
 }
 
-@media (min-width: 768px) {
-    .content-wrapper {
-        margin-left: 200px;
-    }
+.comment-container {
+    padding-bottom: 15px; 
 }
+
+.comment-separator {
+    border: 0;
+    border-top: 1px solid #ddd; 
+    margin-top: 10px; 
+    margin-bottom: 10px; 
+}
+

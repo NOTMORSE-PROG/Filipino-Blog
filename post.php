@@ -4,6 +4,15 @@ include('db_connect.php');
 session_start();
 $user_id = $_SESSION['user_id'];  
 
+$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("i", $user_id);
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
+
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
 $userStmt->bind_param("i", $user_id);
@@ -116,7 +125,17 @@ $result = $stmt->get_result();
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+            <li class="nav-item">
+                        <a class="nav-link" href="index.php">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="notification.php">
+                            Notifications
+                            <?php if ($unreadCount > 0): ?>
+                                <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                 <li class="nav-item">
                     <button id="themeToggle" class="btn btn-link nav-link"><i class="bi bi-sun-fill"></i></button>
                 </li>
@@ -141,10 +160,44 @@ $result = $stmt->get_result();
         <nav class="col-md-3 col-lg-2 sidebar bg-dark" id="sidebar">
             <div class="position-sticky pt-3">
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-light" href="dashboard.php"><i class="bi bi-house-door me-2"></i>Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link text-light active" href="post.php"><i class="bi bi-file-earmark-text me-2"></i>My Posts</a></li>
-                    <li class="nav-item"><a class="nav-link text-light" href="others.php"><i class="bi bi-people me-2"></i>See Others' Posts</a></li>
-                    <li class="nav-item"><a class="nav-link text-light" href="settings.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="index.php">
+                                <i class="bi bi-house-door me-2"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.php">
+                                <i class="bi bi-grid me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="post.php">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                My Posts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="others.php">
+                                <i class="bi bi-people me-2"></i>
+                                See Others' Posts
+                            </a>
+                        </li>
+                        <li class="nav-item d-md-none">
+                            <a class="nav-link" href="notification.php">
+                                <i class="bi bi-bell me-2"></i>
+                                Notifications
+                                <?php if ($unreadCount > 0): ?>
+                                    <span class="badge bg-danger"><?php echo $unreadCount; ?></span>
+                                <?php endif; ?>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="settings.php">
+                                <i class="bi bi-gear me-2"></i>
+                                Settings
+                            </a>
+                        </li>
                 </ul>
             </div>
         </nav>
@@ -171,7 +224,7 @@ $result = $stmt->get_result();
                             <i class="bi bi-filter"></i> Apply
                         </button>
                     </form>
-                    <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive">
+                    <a href="create-post.php" class="btn btn-sm btn-filipino d-flex align-items-center btn-responsive" style = "color: black;">
                         <i class="bi bi-plus-lg"></i> New
                     </a>
                 </div>

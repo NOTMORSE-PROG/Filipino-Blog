@@ -210,98 +210,54 @@ if (isset($_GET['id'])) {
 
         <h2 class="mb-4"><?= htmlspecialchars($user['fullName']) ?>'s Blog Posts</h2>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
-            <?php foreach ($posts as $post): ?>
-                <div class="col">
-                    <div class="card post-card">
-                        <img src="<?= $post['featured_image'] ?: 'https://via.placeholder.com/800x400' ?>" class="card-img-top post-image" alt="<?= htmlspecialchars($post['title']) ?>">
-                        <div class="card-body">
-                            <h5 class="card-title"><?= htmlspecialchars($post['title']) ?></h5>
-                            <p class="card-text"><?= htmlspecialchars(substr($post['content'], 0, 100)) ?>...</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted"><?= date('F j, Y', strtotime($post['created_at'])) ?></small>
-                                <span class="badge bg-primary rounded-pill"><?= htmlspecialchars($post['category']) ?></span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent border-top-0">
-                          <a href="view-others.php?post_id=<?= $post['id'] ?>" class="btn btn-sm btn-outline-primary">Read More</a>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h3 class="card-title">Recent Activity</h3>
-                    <ul class="list-group list-group-flush">
-                        <?php foreach ($recentActivities as $activity): ?>
-                            <li class="list-group-item">
-                                <i class="bi bi-pencil-fill me-2 text-primary"></i>
-                                Posted a new article: "<?= htmlspecialchars($activity['title']) ?>"
-                                <small class="d-block text-muted"><?= time_ago($activity['created_at']) ?></small>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            </div>
+              <?php if (!empty($posts)): ?>
+                  <?php foreach ($posts as $post): ?>
+                      <div class="col">
+                          <div class="card post-card">
+                              <img src="<?= $post['featured_image'] ?: 'https://via.placeholder.com/800x400' ?>" class="card-img-top post-image" alt="<?= htmlspecialchars($post['title']) ?>">
+                              <div class="card-body">
+                                  <h5 class="card-title"><?= htmlspecialchars($post['title']) ?></h5>
+                                  <p class="card-text"><?= htmlspecialchars(substr($post['content'], 0, 100)) ?>...</p>
+                                  <div class="d-flex justify-content-between align-items-center">
+                                      <small class="text-muted"><?= date('F j, Y', strtotime($post['created_at'])) ?></small>
+                                      <span class="badge bg-primary rounded-pill"><?= htmlspecialchars($post['category']) ?></span>
+                                  </div>
+                              </div>
+                              <div class="card-footer bg-transparent border-top-0">
+                                  <a href="view-others.php?post_id=<?= $post['id'] ?>" class="btn btn-sm btn-outline-primary">Read More</a>
+                              </div>
+                          </div>
+                      </div>
+                  <?php endforeach; ?>
+              <?php else: ?>
+                  <div class="col">
+                      <p class="text-muted text-center">No blog posted yet.</p>
+                  </div>
+              <?php endif; ?>
+          </div>
+          <div class="col-md-6 mb-4">
+              <div class="card">
+                  <div class="card-body">
+                      <h3 class="card-title">Recent Activity</h3>
+                      <?php if (!empty($recentActivities)): ?>
+                          <ul class="list-group list-group-flush">
+                              <?php foreach ($recentActivities as $activity): ?>
+                                  <li class="list-group-item">
+                                      <i class="bi bi-pencil-fill me-2 text-primary"></i>
+                                      Posted a new article: "<?= htmlspecialchars($activity['title']) ?>"
+                                      <small class="d-block text-muted"><?= time_ago($activity['created_at']) ?></small>
+                                  </li>
+                              <?php endforeach; ?>
+                          </ul>
+                      <?php else: ?>
+                          <p class="text-muted mt-3">No activity yet.</p>
+                      <?php endif; ?>
+                  </div>
+              </div>
+          </div>
         </div>
     </main>
-
-    <footer class="py-4 cente">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-4 mb-3 mb-md-0">
-            <h5 class="text-filipino">FilipinoBlog</h5>
-            <p class="text-muted small">
-              Empowering Filipino Voices Since 2024
-            </p>
-          </div>
-          <div class="col-md-4 mb-3 mb-md-0">
-            <h5 class="text-filipino">Quick Links</h5>
-            <ul class="list-unstyled">
-              <li><a href="index.php">Home</a></li>
-              <li><a href="discover.php">Discover</a></li>
-              <li><a href="about.php">About</a></li>
-              <?php if (!isset($_SESSION['user_id'])): ?>
-                <li><a href="login.php">Log in</a></li>
-                <?php else: ?>
-                  <li><a href="dashboard.php">Dashboard</a></li>
-              <?php endif; ?>
-            </ul>
-          </div>
-          <div class="col-md-4">
-            <h5 class="text-filipino">Connect With Us</h5>
-            <ul class="list-inline">
-              <li class="list-inline-item">
-                <a href="#" class="facebook-link">
-                  <i class="bi bi-facebook"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#" class="text-muted twitter-link">
-                  <i class="bi bi-twitter"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#" class="text-muted instagram-link">
-                  <i class="bi bi-instagram"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#" class="text-muted linkedin-link">
-                  <i class="bi bi-linkedin"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <hr class="my-4 bg-secondary" />
-        <p class="text-center text-muted mb-0">
-          &copy; 2024 FilipinoBlog. All rights reserved.
-        </p>
-      </div>
-    </footer>
-    <script src="bootstrap.bundle.min.js"></script>
+  <script src="bootstrap.bundle.min.js"></script>
   <script>
     const themeToggle = document.getElementById("themeToggle");
     const htmlElement = document.documentElement;

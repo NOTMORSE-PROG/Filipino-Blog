@@ -242,22 +242,22 @@ $posts = $postsResult->fetch_all(MYSQLI_ASSOC);
             <h5 class="text-filipino">Connect With Us</h5>
             <ul class="list-inline">
               <li class="list-inline-item">
-                <a href="#" class="facebook-link">
+                <a href="https://www.facebook.com/" target = "_blank" class="facebook-link">
                   <i class="bi bi-facebook"></i>
                 </a>
               </li>
               <li class="list-inline-item">
-                <a href="#" class="text-muted twitter-link">
+                <a href="https://x.com/?lang=en" target = "_blank" class="text-muted twitter-link">
                   <i class="bi bi-twitter"></i>
                 </a>
               </li>
               <li class="list-inline-item">
-                <a href="#" class="text-muted instagram-link">
+                <a href="https://www.instagram.com/" target = "_blank" class="text-muted instagram-link">
                   <i class="bi bi-instagram"></i>
                 </a>
               </li>
               <li class="list-inline-item">
-                <a href="#" class="text-muted linkedin-link">
+                <a href="https://www.linkedin.com/" target = "_blank" class="text-muted linkedin-link">
                   <i class="bi bi-linkedin"></i>
                 </a>
               </li>
