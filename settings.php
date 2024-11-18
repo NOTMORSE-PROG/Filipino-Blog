@@ -103,6 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $bio = $_POST['bio'];
     $profilePicture = $_FILES['profilePicture'];
 
+    if (strlen($bio) > 200) {
+        echo "Bio must not exceed 200 characters!";
+        exit();
+    }
+
     if (!empty($name) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmt->bind_param("si", $email, $userId);
@@ -160,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $stmt->close();
     $conn->close();
 }
+
   
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
     $newPassword = $_POST['newPassword'];
@@ -338,7 +344,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                 </div>
                                 <div class="mb-3">
                                     <label for="bio" class="form-label">Bio</label>
-                                    <textarea class="form-control" id="bio" name="bio" rows="3"><?php echo htmlspecialchars($userData['bio'] ?? ''); ?></textarea>
+                                    <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="200" oninput="updateCharCount()"><?php echo htmlspecialchars($userData['bio'] ?? ''); ?></textarea>
+                                    <small id="charCount" class="text-muted">0/200</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="profilePicture" class="form-label">Profile Picture</label>
@@ -447,6 +454,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                     confirmDeleteBtn.disabled = this.value !== "DELETE";
                 });
                 </script>
+                <script>
+                function updateCharCount() {
+                    const bio = document.getElementById('bio');
+                    const charCount = document.getElementById('charCount');
+                    charCount.textContent = `${bio.value.length}/200`;
+                }
 
+                document.addEventListener("DOMContentLoaded", updateCharCount);
+                </script>
             </body>
             </html>

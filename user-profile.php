@@ -204,6 +204,10 @@ if (isset($_GET['id'])) {
                 <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
                     <h1 class="mb-2"><?= htmlspecialchars($user['fullName']) ?></h1>
                     <p class="mb-3"><?= htmlspecialchars($profile['bio']) ?: 'This user has not provided a bio yet.' ?></p>
+                    <p class="mb-3">
+                        <i class="bi bi-envelope-fill"></i> 
+                        <a href="mailto:<?= htmlspecialchars($user['email']) ?>" class="text-decoration-none"><?= htmlspecialchars($user['email']) ?></a>
+                    </p>
                 </div>
             </div>
         </div>
