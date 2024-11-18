@@ -151,6 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
         }
         
         echo "Profile updated successfully!";
+        header("Location: settings.php");
+        exit();
     } else {
         echo "Invalid input!";
     }
@@ -173,6 +175,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
         $stmt->close();
         
         echo "Password updated successfully!";
+        header("Location: settings.php");
+        exit();
     } else {
         echo "Passwords do not match!";
     }
