@@ -38,12 +38,15 @@ function deleteDirectory($dir) {
 }
 
 
-$userQuery = $conn->prepare("SELECT email FROM users WHERE id = ?");
+$userQuery = $conn->prepare("SELECT fullName, email, (SELECT picture_path FROM user_profile WHERE user_id = users.id) as picture_path, (SELECT bio FROM user_profile WHERE user_id = users.id) as bio FROM users WHERE id = ?");
 $userQuery->bind_param("i", $userId);
 $userQuery->execute();
 $userResult = $userQuery->get_result();
 $userData = $userResult->fetch_assoc();
+$fullName = $userData['fullName'];
 $email = $userData['email'];
+$picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32';
+$bio = $userData['bio'] ?: '';
 $safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
@@ -94,7 +97,6 @@ $email = $userData['email'];
 $picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32';
 
 $safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $name = $_POST['fullName'];
     $email = $_POST['email'];
@@ -332,7 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                 </div>
                                 <div class="mb-3">
                                     <label for="bio" class="form-label">Bio</label>
-                                    <textarea class="form-control" id="bio" name="bio" rows="3">Filipino blogger passionate about travel and culture.</textarea>
+                                    <textarea class="form-control" id="bio" name="bio" rows="3"><?php echo htmlspecialchars($userData['bio'] ?? ''); ?></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="profilePicture" class="form-label">Profile Picture</label>
@@ -373,54 +375,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                     <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
                                 </div>
                                 <button type="submit" name="update_password" class="btn btn-filipino">Update Password</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                            <h5 class="card-title">Notification Preferences</h5>
-                            <form>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                                    <label class="form-check-label" for="emailNotifications">Email Notifications</label>
-                                </div>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
-                                    <label class="form-check-label" for="pushNotifications">Push Notifications</label>
-                                </div>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="newsletterSubscription" checked>
-                                    <label class="form-check-label" for="newsletterSubscription">Newsletter Subscription</label>
-                                </div>
-                                <button type="submit" class="btn btn-filipino">Save Preferences</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                            <h5 class="card-title">Privacy Settings</h5>
-                            <form>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="profileVisibility" checked>
-                                    <label class="form-check-label" for="profileVisibility">Public Profile</label>
-                                </div>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="showEmail">
-                                    <label class="form-check-label" for="showEmail">Show Email Address</label>
-                                </div>
-                                <div class="mb-3 form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="allowComments" checked>
-                                    <label class="form-check-label" for="allowComments">Allow Comments on Posts</label>
-                                </div>
-                                <button type="submit" class="btn btn-filipino">Update Privacy Settings</button>
                                 </form>
                             </div>
                         </div>

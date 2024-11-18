@@ -277,30 +277,36 @@ $postsStmt->close();
                     <h3>No posts available</h3>
                 </div>
                 <?php else: ?>
-                <div class="row row-cols-1 row-cols-md-2 g-4">
-                    <?php foreach ($posts as $post): ?>
-                    <div class="col">
-                        <div class="card">
-                            <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" class="card-img-top post-image" alt="Post Image">
-                            <div class="card-body">
-                                <h5 class="card-title mb-0"><?php echo htmlspecialchars($post['username']); ?></h5>
-                                <small class="text-muted">Posted <?php echo htmlspecialchars($post['created_at']); ?></small>
-                                <h4 class="card-title mt-3"><?php echo htmlspecialchars($post['title']); ?></h4>
-                                <p class="card-text">
-                                    <?php
-                                    $content = htmlspecialchars($post['content']);
-                                    echo (strlen($content) > 150) ? substr($content, 0, 150) . '...' : $content;
-                                    ?>
-                                </p>
-                                <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <a href="view-others.php?post_id=<?= htmlspecialchars($post['id']); ?>" class="btn btn-sm btn-filipino" style = "color: black;">Read More</a>
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        <?php foreach ($posts as $post): ?>
+                        <div class="col">
+                            <div class="card">
+                                <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" class="card-img-top post-image" alt="Post Image">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-0"><?php echo htmlspecialchars($post['username']); ?></h5>
+                                    <small class="text-muted">
+                                        Posted <?php 
+                                            $created_at = new DateTime($post['created_at']);
+                                            echo $created_at->format('M d, Y h:i A');
+                                        ?>
+                                    </small>
+                                    <h4 class="card-title mt-3"><?php echo htmlspecialchars($post['title']); ?></h4>
+                                    <p class="card-text">
+                                        <?php
+                                        $content = htmlspecialchars($post['content']);
+                                        echo (strlen($content) > 150) ? substr($content, 0, 150) . '...' : $content;
+                                        ?>
+                                    </p>
+                                    <span class="badge bg-primary rounded-pill"><?php echo htmlspecialchars($post['category']); ?></span>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <a href="view-others.php?post_id=<?= htmlspecialchars($post['id']); ?>" class="btn btn-sm btn-filipino" style="color: black;">Read More</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
-                </div>
+
 
                 <nav aria-label="Page navigation" class="my-4">
                     <ul class="pagination justify-content-center">
