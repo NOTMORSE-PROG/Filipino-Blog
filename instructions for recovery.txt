@@ -1,4 +1,0 @@
-just run this in web:
-http://localhost/load_database.php
-or in terminal:
-php load_database.php
