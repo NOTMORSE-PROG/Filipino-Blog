@@ -179,14 +179,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
         $stmt->bind_param("si", $hashedPassword, $userId);
         $stmt->execute();
         $stmt->close();
-        
         echo "Password updated successfully!";
         header("Location: settings.php");
         exit();
-    } else {
-        echo "Passwords do not match!";
-    }
-    
+    } 
     $conn->close();
 }
 ?>
@@ -340,7 +336,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                                 </div>
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>">
+                                    <input type="email" class="form-control" id="email" name="email" oninput="validateEmailField()" value="<?php echo htmlspecialchars($email); ?>">
+                                    <small id="emailError" class="text-danger" style="display: none;">This field shouldn’t be empty.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="bio" class="form-label">Bio</label>
@@ -371,21 +368,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 </div>
             </div>
 
-                <div class="row">
+            <div class="row">
                     <div class="col-md-6 mb-4">
                         <div class="card">
                             <div class="card-body">
-                            <h5 class="card-title">Change Password</h5>
-                            <form method="POST" action="">
-                                <div class="mb-3">
-                                    <label for="newPassword" class="form-label">New Password</label>
-                                    <input type="password" class="form-control" id="newPassword" name="newPassword">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
-                                </div>
-                                <button type="submit" name="update_password" class="btn btn-filipino">Update Password</button>
+                                <h5 class="card-title">Change Password</h5>
+                                <form method="POST" action="">
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">New Password</label>
+                                        <input 
+                                            type="password" 
+                                            class="form-control" 
+                                            id="newPassword" 
+                                            name="newPassword" 
+                                            minlength="8" 
+                                            maxlength="20"
+                                            oninput="validateNewPasswordField()"
+                                        >
+                                        <small id="newPasswordError" class="text-danger" style="display: none;">Password must be between 8 and 20 characters.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                                        <small id="confirmPasswordError" class="text-danger" style="display: none;">Passwords must match.</small>
+                                    </div>
+                                    <button type="submit" name="update_password" id="updatePasswordButton" class="btn btn-filipino" disabled>Update Password</button>
                                 </form>
                             </div>
                         </div>
@@ -462,6 +469,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                 }
 
                 document.addEventListener("DOMContentLoaded", updateCharCount);
+                </script>
+                <script>
+                    function validateEmailField() {
+                        const emailInput = document.getElementById('email').value.trim();
+                        const emailError = document.getElementById('emailError');
+                        const saveButton = document.getElementById('saveButton');
+
+                        if (emailInput === '') {
+                            emailError.style.display = 'block';
+                            emailError.textContent = 'This field shouldn’t be empty.';
+                            saveButton.disabled = true;
+                        } else {
+                            emailError.style.display = 'none';
+                            saveButton.disabled = false;
+                        }
+                    }
+                    document.addEventListener('DOMContentLoaded', validateEmailField);
+                </script>
+                <script>
+                    function validateNewPasswordField() {
+                        const newPasswordInput = document.getElementById('newPassword').value;
+                        const newPasswordError = document.getElementById('newPasswordError');
+                        const updatePasswordButton = document.getElementById('updatePasswordButton');
+                        const minLength = 8;
+                        const maxLength = 20;
+
+                        if (newPasswordInput.length < minLength || newPasswordInput.length > maxLength) {
+                            newPasswordError.style.display = 'block';
+                            newPasswordError.textContent = `Password must be between ${minLength} and ${maxLength} characters.`;
+                            updatePasswordButton.disabled = true;
+                        } else {
+                            newPasswordError.style.display = 'none';
+                            updatePasswordButton.disabled = false;
+                        }
+                    }
+                    function validateConfirmPassword() {
+                        const newPassword = document.getElementById('newPassword').value;
+                        const confirmPassword = document.getElementById('confirmPassword').value;
+                        const confirmPasswordError = document.getElementById('confirmPasswordError');
+                        const updatePasswordButton = document.getElementById('updatePasswordButton');
+
+                        if (newPassword !== confirmPassword) {
+                            confirmPasswordError.style.display = 'block';
+                            confirmPasswordError.textContent = 'Passwords must match.';
+                            updatePasswordButton.disabled = true;
+                        } else {
+                            confirmPasswordError.style.display = 'none';
+                            updatePasswordButton.disabled = false;
+                        }
+                    }
+                    document.getElementById('confirmPassword').addEventListener('input', validateConfirmPassword);
                 </script>
             </body>
             </html>

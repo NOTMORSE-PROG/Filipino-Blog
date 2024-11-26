@@ -85,11 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" name="password" id="password" required />
+                                <input type="password" class="form-control" name="password" id="password" minlength="8" maxlength="20" oninput="validatePasswordField()" required />
                                 <button type="button" class="btn btn-outline-secondary" id="togglePassword" aria-label="Toggle password visibility">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
+                            <small id="passwordError" class="text-danger" style="display: none;">Password must be between 8 and 20 characters.</small>
                         </div>
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
@@ -179,6 +180,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         toggleConfirmPasswordIcon.classList.toggle('bi-eye');
         toggleConfirmPasswordIcon.classList.toggle('bi-eye-slash');
     });
+
+    function validatePasswordField() {
+        const passwordInput = document.getElementById('password').value;
+        const passwordError = document.getElementById('passwordError');
+        const minLength = 8;
+        const maxLength = 20;
+
+        if (passwordInput.length < minLength || passwordInput.length > maxLength) {
+            passwordError.style.display = 'block';
+            passwordError.textContent = `Password must be between ${minLength} and ${maxLength} characters.`;
+        } else {
+            passwordError.style.display = 'none';
+        }
+    }
 </script>
 </body>
 </html>
