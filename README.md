@@ -16,7 +16,7 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
-CREATE TABLE user_profiles (
+CREATE TABLE user_profile (
     id INT(11) NOT NULL AUTO_INCREMENT,
     user_id INT(11) DEFAULT NULL,
     picture_path VARCHAR(255) DEFAULT NULL,
