@@ -4,15 +4,6 @@ include('db_connect.php');
 session_start();
 $user_id = $_SESSION['user_id'];  
 
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
-$unreadStmt = $conn->prepare($unreadNotificationsQuery);
-$unreadStmt->bind_param("i", $user_id);
-$unreadStmt->execute();
-$unreadResult = $unreadStmt->get_result();
-$unreadRow = $unreadResult->fetch_assoc();
-$unreadCount = $unreadRow['unread_count'] ?? 0;
-$unreadStmt->close();
-
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
 $userStmt->bind_param("i", $user_id);
@@ -25,6 +16,24 @@ if ($userRow = $userResult->fetch_assoc()) {
 }
 
 $userStmt->close();
+
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ?  -- The logged-in user is the owner of the post
+    AND c.is_read = 0    -- The comment is unread
+    AND c.is_deleted = 0 -- The comment is not deleted
+    AND c.user_id != ?   -- Exclude comments made by the logged-in user
+";
+
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("ii", $user_id, $user_id);  
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
 $post_deleted = false;
 

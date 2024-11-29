@@ -1,61 +1,55 @@
 <?php
 include('db_connect.php');
 session_start();
+
 function time_ago($timestamp) {
     $time_ago = strtotime($timestamp);
     $current_time = time();
     $time_difference = $current_time - $time_ago;
     $seconds = $time_difference;
-    $minutes      = round($seconds / 60);      
-    $hours        = round($seconds / 3600);         
-    $days         = round($seconds / 86400);       
-    $weeks        = round($seconds / 604800);       
-    $months       = round($seconds / 2629440);      
-    $years        = round($seconds / 31553280);     
+    $minutes = round($seconds / 60);      
+    $hours = round($seconds / 3600);         
+    $days = round($seconds / 86400);       
+    $weeks = round($seconds / 604800);       
+    $months = round($seconds / 2629440);      
+    $years = round($seconds / 31553280);     
 
     if ($seconds <= 60) {
         return "Just Now";
     } else if ($minutes <= 60) {
-        if ($minutes == 1) {
-            return "one minute ago";
-        } else {
-            return "$minutes minutes ago";
-        }
+        return $minutes == 1 ? "one minute ago" : "$minutes minutes ago";
     } else if ($hours <= 24) {
-        if ($hours == 1) {
-            return "an hour ago";
-        } else {
-            return "$hours hours ago";
-        }
+        return $hours == 1 ? "an hour ago" : "$hours hours ago";
     } else if ($days <= 7) {
-        if ($days == 1) {
-            return "yesterday";
-        } else {
-            return "$days days ago";
-        }
-    } else if ($weeks <= 4.3) { // 4.3 == 30/7
-        if ($weeks == 1) {
-            return "one week ago";
-        } else {
-            return "$weeks weeks ago";
-        }
+        return $days == 1 ? "yesterday" : "$days days ago";
+    } else if ($weeks <= 4.3) { 
+        return $weeks == 1 ? "one week ago" : "$weeks weeks ago";
     } else if ($months <= 12) {
-        if ($months == 1) {
-            return "one month ago";
-        } else {
-            return "$months months ago";
-        }
+        return $months == 1 ? "one month ago" : "$months months ago";
     } else {
-        if ($years == 1) {
-            return "one year ago";
-        } else {
-            return "$years years ago";
-        }
+        return $years == 1 ? "one year ago" : "$years years ago";
     }
 }
 
-
 $user_id = $_SESSION['user_id'];  
+
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ?  -- The logged-in user is the owner of the post
+    AND c.is_read = 0    -- The comment is unread
+    AND c.is_deleted = 0 -- The comment is not deleted
+    AND c.user_id != ?   -- Exclude comments made by the logged-in user
+";
+
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("ii", $user_id, $user_id);  
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
 $sql_posts = "SELECT COUNT(*) AS total_posts FROM posts WHERE user_id = $user_id";
 $result_posts = $conn->query($sql_posts);
@@ -67,28 +61,27 @@ $result_previous_posts = $conn->query($sql_previous_posts);
 $row_previous_posts = $result_previous_posts->fetch_assoc();
 $previous_total_posts = $row_previous_posts['previous_total_posts'];
 
-if ($previous_total_posts > 0) {
-    $post_rate = (($total_posts - $previous_total_posts) / $previous_total_posts) * 100;
-} else {
-    $post_rate = 0;
-}
+$post_rate = $previous_total_posts > 0 ? (($total_posts - $previous_total_posts) / $previous_total_posts) * 100 : 0;
 
-$sql_comments = "SELECT COUNT(*) AS total_comments FROM comments WHERE user_id = $user_id";
-$result_comments = $conn->query($sql_comments);
-$row_comments = $result_comments->fetch_assoc();
+$sql_comments = "SELECT COUNT(*) AS total_comments FROM comments c
+                 JOIN posts p ON c.post_id = p.id
+                 WHERE p.user_id = ?"; 
+$result_comments = $conn->prepare($sql_comments);
+$result_comments->bind_param("i", $user_id);
+$result_comments->execute();
+$row_comments = $result_comments->get_result()->fetch_assoc();
 $total_comments = $row_comments['total_comments'];
 
-$sql_previous_comments = "SELECT COUNT(*) AS previous_total_comments FROM comments WHERE user_id = $user_id AND created_at >= NOW() - INTERVAL 7 DAY";
-$result_previous_comments = $conn->query($sql_previous_comments);
-$row_previous_comments = $result_previous_comments->fetch_assoc();
+$sql_previous_comments = "SELECT COUNT(*) AS previous_total_comments FROM comments c
+                          JOIN posts p ON c.post_id = p.id
+                          WHERE p.user_id = ? AND c.created_at >= NOW() - INTERVAL 7 DAY"; // Comments in the last 7 days
+$result_previous_comments = $conn->prepare($sql_previous_comments);
+$result_previous_comments->bind_param("i", $user_id);
+$result_previous_comments->execute();
+$row_previous_comments = $result_previous_comments->get_result()->fetch_assoc();
 $previous_total_comments = $row_previous_comments['previous_total_comments'];
 
-if ($previous_total_comments > 0) {
-    $comments_rate = (($total_comments - $previous_total_comments) / $previous_total_comments) * 100;
-} else {
-    $comments_rate = 0;
-}
-
+$comments_rate = $previous_total_comments > 0 ? (($total_comments - $previous_total_comments) / $previous_total_comments) * 100 : 0;
 
 $categories = [];
 $category_counts = [];
@@ -119,11 +112,11 @@ $sql_comments = "SELECT c.comment, c.created_at, p.title AS post_title, u.fullNa
                  FROM comments c
                  JOIN posts p ON c.post_id = p.id
                  JOIN users u ON c.user_id = u.id
-                 WHERE c.user_id = ? 
-                 ORDER BY c.created_at DESC LIMIT 3";
+                 WHERE p.user_id = ? AND c.user_id != ?  -- Exclude the logged-in user
+                 ORDER BY c.created_at DESC LIMIT 3"; 
 
 $stmt_comments = $conn->prepare($sql_comments);
-$stmt_comments->bind_param("i", $user_id); 
+$stmt_comments->bind_param("ii", $user_id, $user_id); 
 $stmt_comments->execute();
 $result_comments = $stmt_comments->get_result();
 
@@ -134,27 +127,19 @@ if ($result_comments->num_rows > 0) {
     }
 }
 
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
-$unreadStmt = $conn->prepare($unreadNotificationsQuery);
-$unreadStmt->bind_param("i", $user_id);
-$unreadStmt->execute();
-$unreadResult = $unreadStmt->get_result();
-$unreadRow = $unreadResult->fetch_assoc();
-$unreadCount = $unreadRow['unread_count'] ?? 0;
-$unreadStmt->close();
-
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
 $userStmt->bind_param("i", $user_id);
 $userStmt->execute();
 $userResult = $userStmt->get_result();
-
 $userProfilePath = "https://via.placeholder.com/32";  
 if ($userRow = $userResult->fetch_assoc()) {
     $userProfilePath = $userRow['picture_path'];
 }
 $userStmt->close();
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>

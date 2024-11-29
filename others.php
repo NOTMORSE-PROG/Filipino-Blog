@@ -18,14 +18,24 @@ if (isset($_SESSION['user_id'])) {
     $userStmt->close();
 }
 
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
-    $unreadStmt = $conn->prepare($unreadNotificationsQuery);
-    $unreadStmt->bind_param("i", $loggedInUserId);
-    $unreadStmt->execute();
-    $unreadResult = $unreadStmt->get_result();
-    $unreadRow = $unreadResult->fetch_assoc();
-    $unreadCount = $unreadRow['unread_count'] ?? 0;
-    
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ?  -- The logged-in user is the owner of the post
+    AND c.is_read = 0    -- The comment is unread
+    AND c.is_deleted = 0 -- The comment is not deleted
+    AND c.user_id != ?   -- Exclude comments made by the logged-in user
+";
+
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("ii", $loggedInUserId, $loggedInUserId);  
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
+
 
 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -306,7 +316,6 @@ $postsStmt->close();
                         </div>
                         <?php endforeach; ?>
                     </div>
-
 
                 <nav aria-label="Page navigation" class="my-4">
                     <ul class="pagination justify-content-center">

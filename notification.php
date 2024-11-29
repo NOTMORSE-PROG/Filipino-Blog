@@ -98,10 +98,12 @@ $notificationsQuery = $conn->prepare("
     FROM comments c
     INNER JOIN posts p ON c.post_id = p.id
     INNER JOIN users u ON c.user_id = u.id
-    WHERE p.user_id = ? AND c.is_deleted = 0
+    WHERE p.user_id = ? 
+    AND c.is_deleted = 0 
+    AND c.user_id != ? -- Exclude logged-in user's own comments
     $filterCondition
 ");
-$notificationsQuery->bind_param("i", $loggedInUserId);
+$notificationsQuery->bind_param("ii", $loggedInUserId, $loggedInUserId);
 $notificationsQuery->execute();
 $notifications = $notificationsQuery->get_result();
 ?>
@@ -121,7 +123,7 @@ $notifications = $notificationsQuery->get_result();
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">
                 <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
-                <span class="ms-2 text-filipino">FilipinoBlog</span>
+                <span class="ms-2 style = "color: black;">FilipinoBlog</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>

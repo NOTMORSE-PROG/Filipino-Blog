@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 include('db_connect.php');
 
 if (!isset($_SESSION['user_id'])) {
@@ -9,15 +8,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
-$unreadStmt = $conn->prepare($unreadNotificationsQuery);
-$unreadStmt->bind_param("i", $userId);
-$unreadStmt->execute();
-$unreadResult = $unreadStmt->get_result();
-$unreadRow = $unreadResult->fetch_assoc();
-$unreadCount = $unreadRow['unread_count'] ?? 0;
-$unreadStmt->close();
 
 function deleteDirectory($dir) {
     if (!file_exists($dir)) {
@@ -37,21 +27,33 @@ function deleteDirectory($dir) {
     return rmdir($dir);
 }
 
-
-$userQuery = $conn->prepare("SELECT fullName, email, (SELECT picture_path FROM user_profile WHERE user_id = users.id) as picture_path, (SELECT bio FROM user_profile WHERE user_id = users.id) as bio FROM users WHERE id = ?");
+$userQuery = $conn->prepare("SELECT email FROM users WHERE id = ?");
 $userQuery->bind_param("i", $userId);
 $userQuery->execute();
 $userResult = $userQuery->get_result();
 $userData = $userResult->fetch_assoc();
-$fullName = $userData['fullName'];
 $email = $userData['email'];
-$picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32';
-$bio = $userData['bio'] ?: '';
 $safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
+
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ?  -- The logged-in user is the owner of the post
+    AND c.is_read = 0    -- The comment is unread
+    AND c.is_deleted = 0 -- The comment is not deleted
+    AND c.user_id != ?   -- Exclude comments made by the logged-in user
+";
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("ii", $userId, $userId);
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
     $conn->begin_transaction();
-
     try {
         $stmt = $conn->prepare("DELETE FROM posts WHERE user_id = ?");
         $stmt->bind_param("i", $userId);
@@ -69,14 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
         $stmt->bind_param("i", $userId);
         $stmt->execute();
 
-        $uploadDir = 'C:/xampp/htdocs/Filipino-Blog/uploads/' . $safeEmail;
-        $profileDir = 'C:/xampp/htdocs/Filipino-Blog/profile/' . $safeEmail;
-
+        $uploadDir = __DIR__ . '/uploads/' . $safeEmail . '/';
+        $profileDir = __DIR__ . '/profile/' . $safeEmail . '/';
         deleteDirectory($uploadDir);
         deleteDirectory($profileDir);
 
         $conn->commit();
-
         session_destroy();
         header("Location: login.php");
         exit();
@@ -86,7 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_account'])) {
     }
 }
 
-$userQuery = $conn->prepare("SELECT fullName, email, (SELECT picture_path FROM user_profile WHERE user_id = users.id) as picture_path FROM users WHERE id = ?");
+
+$userQuery = $conn->prepare("SELECT fullName, email, (SELECT picture_path FROM user_profile WHERE user_id = users.id) as picture_path, (SELECT bio FROM user_profile WHERE user_id = users.id) as bio FROM users WHERE id = ?");
 $userQuery->bind_param("i", $userId);
 $userQuery->execute();
 $userResult = $userQuery->get_result();
@@ -95,8 +96,10 @@ $userData = $userResult->fetch_assoc();
 $fullName = $userData['fullName'];
 $email = $userData['email'];
 $picturePath = $userData['picture_path'] ?: 'https://via.placeholder.com/32';
+$bio = $userData['bio'] ?: '';
 
 $safeEmail = preg_replace('/[^\w.@]+/', '_', $email);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $name = $_POST['fullName'];
     $email = $_POST['email'];
@@ -120,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
             $stmt->execute();
 
             if ($profilePicture['error'] == UPLOAD_ERR_OK) {
-                $uploadDir = 'C:/xampp/htdocs/Filipino-Blog/profile/' . $safeEmail . '/';
+                $uploadDir = __DIR__ . '/profile/' . $safeEmail . '/';
                 if (!file_exists($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -154,7 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
         } else {
             echo "Email already in use!";
         }
-        
         echo "Profile updated successfully!";
         header("Location: settings.php");
         exit();
@@ -166,15 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $conn->close();
 }
 
-  
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
     $newPassword = $_POST['newPassword'];
     $confirmPassword = $_POST['confirmPassword'];
 
     if (!empty($newPassword) && $newPassword === $confirmPassword) {
-
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-
         $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
         $stmt->bind_param("si", $hashedPassword, $userId);
         $stmt->execute();
@@ -182,7 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
         echo "Password updated successfully!";
         header("Location: settings.php");
         exit();
-    } 
+    } else {
+        echo "Passwords do not match!";
+    }
     $conn->close();
 }
 ?>

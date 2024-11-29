@@ -162,19 +162,6 @@ session_start();
           <div class="col">
             <div class="h-100 text-center">
               <img
-                src="mirasol.jpg"
-                alt="Juan dela Cruz"
-                class="card-img-top rounded-circle mx-auto mt-3 team-member"
-              />
-              <div class="card-body">
-                <h3 class="card-title">Ven Andrew Mirasol</h3>
-                <p class="card-text">Chief Technology Officer</p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="h-100 text-center">
-              <img
                 src="concepcion.jpg"
                 alt="Liza Reyes"
                 class="card-img-top rounded-circle mx-auto mt-3 team-member"
@@ -195,19 +182,6 @@ session_start();
               <div class="card-body">
                 <h3 class="card-title">Marvin Aranas Munoz</h3>
                 <p class="card-text">Community Manager</p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="h-100 text-center">
-              <img
-                src="anthony.jfif"
-                alt="Ana Gonzales"
-                class="card-img-top rounded-circle mx-auto mt-3 team-member"
-              />
-              <div class="card-body">
-                <h3 class="card-title">Anthony M. Jacinto</h3>
-                <p class="card-text">Marketing Director</p>
               </div>
             </div>
           </div>

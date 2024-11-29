@@ -9,15 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
-$unreadStmt = $conn->prepare($unreadNotificationsQuery);
-$unreadStmt->bind_param("i", $user_id);
-$unreadStmt->execute();
-$unreadResult = $unreadStmt->get_result();
-$unreadRow = $unreadResult->fetch_assoc();
-$unreadCount = $unreadRow['unread_count'] ?? 0;
-$unreadStmt->close();
-
 if (isset($_POST['delete_post']) && isset($_POST['post_id'])) {
     $postId = (int) $_POST['post_id'];
     $query = "SELECT featured_image FROM posts WHERE id = ?";
@@ -54,6 +45,24 @@ if ($userRow = $userResult->fetch_assoc()) {
     $userBio = $userRow['bio'];
 }
 $userStmt->close();
+
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ?  -- The logged-in user is the owner of the post
+    AND c.is_read = 0    -- The comment is unread
+    AND c.is_deleted = 0 -- The comment is not deleted
+    AND c.user_id != ?   -- Exclude comments made by the logged-in user
+";
+
+$unreadStmt = $conn->prepare($unreadNotificationsQuery);
+$unreadStmt->bind_param("ii", $user_id, $user_id);  
+$unreadStmt->execute();
+$unreadResult = $unreadStmt->get_result();
+$unreadRow = $unreadResult->fetch_assoc();
+$unreadCount = $unreadRow['unread_count'] ?? 0;
+$unreadStmt->close();
 
 if (isset($_GET['id'])) {
     $postId = (int) $_GET['id'];
@@ -131,7 +140,6 @@ $commentsResult = $commentsQuery->get_result();
 
 $conn->close();
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">

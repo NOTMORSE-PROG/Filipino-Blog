@@ -12,15 +12,23 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$unreadNotificationsQuery = "SELECT COUNT(*) AS unread_count FROM comments WHERE user_id = ? AND is_read = 0";
+$unreadNotificationsQuery = "
+    SELECT COUNT(*) AS unread_count
+    FROM comments c
+    JOIN posts p ON c.post_id = p.id
+    WHERE p.user_id = ? 
+    AND c.is_read = 0   
+    AND c.is_deleted = 0 
+    AND c.user_id != ?   
+";
+
 $unreadStmt = $conn->prepare($unreadNotificationsQuery);
-$unreadStmt->bind_param("i", $user_id);
+$unreadStmt->bind_param("ii", $user_id, $user_id);  
 $unreadStmt->execute();
 $unreadResult = $unreadStmt->get_result();
 $unreadRow = $unreadResult->fetch_assoc();
 $unreadCount = $unreadRow['unread_count'] ?? 0;
 $unreadStmt->close();
-
 
 $userProfileQuery = "SELECT picture_path FROM user_profile WHERE user_id = ?";
 $userStmt = $conn->prepare($userProfileQuery);
@@ -49,7 +57,6 @@ if ($userResult->num_rows > 0) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
     $title = $conn->real_escape_string($_POST['title']);
     $content = $conn->real_escape_string($_POST['content']);
     $category = $conn->real_escape_string($_POST['category']);
@@ -92,9 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "<div class='alert alert-danger'>Sorry, your file was not uploaded.</div>";
     } else {
         if (move_uploaded_file($_FILES["featured_image"]["tmp_name"], $target_file)) {
-
             $featured_image = $target_file;
-
             $sql = "INSERT INTO posts (user_id, title, content, category, tags, featured_image) 
                     VALUES ('$user_id', '$title', '$content', '$category', '$tags', '$featured_image')";
 
@@ -110,8 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-
-
 
 $conn->close();
 ?>
@@ -273,7 +276,7 @@ $conn->close();
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="tags" class="form-label">Tags (comma separated)</label>
+                                    <label for="tags" class="form-label">Tags (comma seperated)</label>
                                     <input type="text" name="tags" id="tags" class="form-control">
                                 </div>
                                 <div class="mb-3">
