@@ -1,5 +1,5 @@
 <?php
-include('db_connect.php');
+include('includes/db_connect.php');
 
 session_start();
 if (!isset($_SESSION['user_id'])) {
@@ -107,8 +107,8 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create/Edit Post - FilipinoBlog</title>
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="create-post.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/create-post.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <style>
         @media (max-width: 767.98px) {
@@ -142,7 +142,7 @@ $conn->close();
 <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">
-                <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
+                <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
                 <span class="ms-2 text-filipino">FilipinoBlog</span>
             </a>
             <button class="navbar-toggler" type="button" id="sidebarToggle">
@@ -282,7 +282,7 @@ $conn->close();
         </div>
     </div>
 
-    <script src="bootstrap.bundle.min.js"></script>
-    <script src ="theme.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
 </body>
 </html>

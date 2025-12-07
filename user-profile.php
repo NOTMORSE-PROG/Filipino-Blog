@@ -53,7 +53,7 @@ function time_ago($timestamp) {
   }
 }
 session_start();
-include('db_connect.php');  
+include('includes/db_connect.php');  
 $referrer = isset($_SESSION['referrer']) ? $_SESSION['referrer'] : 'index.php';
 
 if (isset($_GET['id'])) {
@@ -131,9 +131,9 @@ if (isset($_GET['id'])) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>About - FilipinoBlog</title>
-    <link rel="shortcut icon" type="x-icon" href="logo.png" />
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="user-profile.css" />
+    <link rel="shortcut icon" type="x-icon" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/user-profile.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"/>
   </head>
   <body>
@@ -141,7 +141,7 @@ if (isset($_GET['id'])) {
       <div class="container">
         <a class="navbar-brand" href="index.php">
           <img
-            src="logo.png"
+            src="assets/images/logo.png"
             alt="FilipinoBlog Logo"
             width="30"
             height="30"
@@ -261,7 +261,7 @@ if (isset($_GET['id'])) {
           </div>
         </div>
     </main>
-  <script src="bootstrap.bundle.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
   <script>
     const themeToggle = document.getElementById("themeToggle");
     const htmlElement = document.documentElement;

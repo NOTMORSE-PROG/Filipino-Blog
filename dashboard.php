@@ -1,5 +1,5 @@
 <?php
-include('db_connect.php');
+include('includes/db_connect.php');
 session_start();
 
 function time_ago($timestamp) {
@@ -146,9 +146,9 @@ $userStmt->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - FilipinoBlog</title>
-    <link rel="shortcut icon" type="x-icon" href="logo.png" />
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="shortcut icon" type="x-icon" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 </head>
 <style>
@@ -182,7 +182,7 @@ $userStmt->close();
 <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">
-                <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
+                <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
                 <span class="ms-2 text-filipino">FilipinoBlog</span>
             </a>
             <button class="navbar-toggler" type="button" id="sidebarToggle">
@@ -407,9 +407,9 @@ $userStmt->close();
         </div>
     </div>
 
-    <script src="bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src ="theme.js"></script>
+    <script src="assets/js/theme.js"></script>
     <script>
         const viewsCtx = document.getElementById('viewsChart').getContext('2d');
         new Chart(viewsCtx, {

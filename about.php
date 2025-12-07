@@ -7,9 +7,9 @@ session_start();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>About - FilipinoBlog</title>
-    <link rel="shortcut icon" type="x-icon" href="logo.png" />
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="about.css" />
+    <link rel="shortcut icon" type="x-icon" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/about.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"/>
   </head>
   <body>
@@ -17,7 +17,7 @@ session_start();
       <div class="container">
         <a class="navbar-brand" href="index.php">
           <img
-            src="logo.png"
+            src="assets/images/logo.png"
             alt="FilipinoBlog Logo"
             width="30"
             height="30"
@@ -149,7 +149,7 @@ session_start();
           <div class="col">
             <div class="h-100 text-center">
               <img
-                src="condino.jpg"
+                src="assets/images/condino.jpg"
                 alt="Maria Santos"
                 class="card-img-top rounded-circle mx-auto mt-3 team-member"
               />
@@ -162,7 +162,7 @@ session_start();
           <div class="col">
             <div class="h-100 text-center">
               <img
-                src="concepcion.jpg"
+                src="assets/images/concepcion.jpg"
                 alt="Liza Reyes"
                 class="card-img-top rounded-circle mx-auto mt-3 team-member"
               />
@@ -175,7 +175,7 @@ session_start();
           <div class="col">
             <div class="h-100 text-center">
               <img
-                src="munoz.jfif"
+                src="assets/images/munoz.jfif"
                 alt="Carlos Bautista"
                 class="card-img-top rounded-circle mx-auto mt-3 team-member"
               />
@@ -294,7 +294,7 @@ session_start();
       </div>
     </footer>
   </body>
-  <script src="bootstrap.bundle.min.js"></script>
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
   <script>
     const themeToggle = document.getElementById("themeToggle");
     const htmlElement = document.documentElement;

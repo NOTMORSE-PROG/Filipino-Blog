@@ -1,57 +1,39 @@
-FILIPINO BLOG DB:
+# FilipinoBlog
 
+A PHP blog platform for Filipino content creators.
 
-CREATE DATABASE FilipinoBlog;
+## Features
 
-USE FilipinoBlog;
+- User registration and authentication
+- Create, edit, and delete blog posts
+- Comment system with notifications
+- User profiles with customizable bio and avatar
+- Category and tag support
+- Dark/Light theme toggle
+- Responsive design with Bootstrap
 
-CREATE TABLE users (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    fullName VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY email (email)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+## Requirements
 
+- PHP 7.4+
+- MySQL 5.7+
+- Web server (Apache/Nginx)
 
-CREATE TABLE user_profile (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    user_id INT(11) DEFAULT NULL,
-    picture_path VARCHAR(255) DEFAULT NULL,
-    bio TEXT DEFAULT NULL,
-    PRIMARY KEY (id),
-    KEY user_id (user_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+## Installation
 
+1. Clone the repository
+2. Set up the database using [setup.md](setup.md)
+3. Configure database connection in `includes/db_connect.php`
+4. Start your web server
 
-CREATE TABLE posts (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    user_id INT(11) DEFAULT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT DEFAULT NULL,
-    category VARCHAR(255) DEFAULT NULL,
-    tags VARCHAR(255) DEFAULT NULL,
-    featured_image VARCHAR(255) DEFAULT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY user_id (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+## Project Structure
 
-
-CREATE TABLE comments (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    post_id INT(11) NOT NULL,
-    user_id INT(11) NOT NULL,
-    comment TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_read TINYINT(1) DEFAULT 0,
-    is_deleted TINYINT(1) DEFAULT 0,
-    PRIMARY KEY (id),
-    KEY post_id (post_id),
-    KEY user_id (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
+```
+FilipinoBlog/
+├── assets/
+│   ├── css/
+│   ├── js/
+│   └── images/
+├── includes/
+│   └── db_connect.php
+└── [PHP files]
+```

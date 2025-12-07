@@ -7,9 +7,9 @@ session_start();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Filipino Blog</title>
-    <link rel="stylesheet" href="index.css" />
-    <link rel="shortcut icon" type="x-icon" href="logo.png" />
-    <link rel="stylesheet" href="bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="shortcut icon" type="x-icon" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
@@ -20,7 +20,7 @@ session_start();
       <div class="container">
         <a class="navbar-brand" href="index.php">
           <img
-            src="logo.png"
+            src="assets/images/logo.png"
             alt="FilipinoBlog Logo"
             width="30"
             height="30"
@@ -148,7 +148,7 @@ session_start();
         <div class="row justify-content-center">
           <div class="col-md-3 col-sm-6 text-center mb-4">
             <img
-              src="glazy.jpg"
+              src="assets/images/glazy.jpg"
               alt="Maria Santos"
               class="rounded-circle mb-3 img-size"
             />
@@ -157,7 +157,7 @@ session_start();
           </div>
           <div class="col-md-3 col-sm-6 text-center mb-4">
             <img
-              src="glazy2.jpg"
+              src="assets/images/glazy2.jpg"
               alt="Juan dela Cruz"
               class="rounded-circle mb-3 img-size"
             />
@@ -166,7 +166,7 @@ session_start();
           </div>
           <div class="col-md-3 col-sm-6 text-center mb-4">
             <img
-              src="glazy3.jpg"
+              src="assets/images/glazy3.jpg"
               alt="Liza Reyes"
               class="rounded-circle mb-3 img-size"
             />
@@ -269,7 +269,7 @@ session_start();
       </div>
     </footer>
   </body>
-    <script src="bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script>
       const themeToggle = document.getElementById("themeToggle");
       const htmlElement = document.documentElement;

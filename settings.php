@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('db_connect.php');
+include('includes/db_connect.php');
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -193,8 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile/Settings - FilipinoBlog</title>
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="settings.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/settings.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 </head>
 <style>
@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">
-            <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
+            <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
             <span class="ms-2 text-filipino">FilipinoBlog</span>
         </a>
         <button class="navbar-toggler" type="button" id="sidebarToggle">
@@ -436,8 +436,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
                     </div>
                 </div>
             
-                <script src="bootstrap.bundle.min.js"></script>
-                <script src="theme.js"></script>
+                <script src="assets/js/bootstrap.bundle.min.js"></script>
+                <script src="assets/js/theme.js"></script>
                 <script>
                 function readURL(input) {
                     if (input.files && input.files[0]) {

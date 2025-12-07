@@ -1,5 +1,5 @@
 <?php
-include('db_connect.php');
+include('includes/db_connect.php');
 
 session_start();
 $user_id = $_SESSION['user_id'];  
@@ -90,8 +90,8 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Posts - FilipinoBlog</title>
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="post.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/post.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <style>
  @media (max-width: 767.98px) {
@@ -126,7 +126,7 @@ $result = $stmt->get_result();
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">
-            <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
+            <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
             <span class="ms-2 text-filipino">FilipinoBlog</span>
         </a>
         <button class="navbar-toggler" type="button" id="sidebarToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
@@ -309,8 +309,8 @@ $result = $stmt->get_result();
 </script>
 <?php } ?>
 
-<script src="bootstrap.bundle.min.js"></script>
-<script src ="theme.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/theme.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const deleteButtons = document.querySelectorAll('.delete-button');

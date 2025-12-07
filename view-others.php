@@ -1,7 +1,7 @@
 <?php
 session_start();
 $referrer = isset($_SESSION['referrer']) ? $_SESSION['referrer'] : 'index.php';
-include('db_connect.php');
+include('includes/db_connect.php');
 
 $postId = isset($_GET['post_id']) ? (int)$_GET['post_id'] : 0;
 
@@ -70,16 +70,16 @@ $commentsResult = $commentsQuery->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($post['title']); ?> - FilipinoBlog</title>
-    <link rel="shortcut icon" href="logo.png" />
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="view-others.css" />
+    <link rel="shortcut icon" href="assets/images/logo.png" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/view-others.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"/>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top"/>
+                <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top"/>
                 <span class="text-filipino">FilipinoBlog</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,7 +199,7 @@ $commentsResult = $commentsQuery->get_result();
                 </div>
         </main>
 
-    <script src="bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script>
         function confirmDelete() {
             return confirm("Are you sure you want to delete this comment?");

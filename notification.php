@@ -1,7 +1,7 @@
 <?php
 session_start();
 $_SESSION['referrer'] = $_SERVER['REQUEST_URI'];
-include('db_connect.php');
+include('includes/db_connect.php');
 
 $loggedInUserId = $_SESSION['user_id'] ?? 0;
 
@@ -113,8 +113,8 @@ $notifications = $notificationsQuery->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>See Others' Posts - FilipinoBlog</title>
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="notification.css" />
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/notification.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 
 </head>
@@ -122,7 +122,7 @@ $notifications = $notificationsQuery->get_result();
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">
-                <img src="logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
+                <img src="assets/images/logo.png" alt="FilipinoBlog Logo" width="30" height="30" class="d-inline-block align-top">
                 <span class="ms-2 style = "color: black;">FilipinoBlog</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -216,7 +216,7 @@ $notifications = $notificationsQuery->get_result();
 
     
 
-    <script src="bootstrap.bundle.min.js"></script>
-    <script src ="theme.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/theme.js"></script>
     </body>
     </html>
